@@ -1,0 +1,12 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: gofermart_init_1
+    image: postgres:13.3
+    environment:
+      - POSTGRES_USER=gofermart
+      - POSTGRES_PASSWORD=gofermart
+      - POSTGRES_DB=gofermart
+    ports:
+      - "5432:5432"

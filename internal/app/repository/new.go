@@ -1,10 +1,9 @@
-package storage
+package repository
 
 import (
 	"log"
 
-	"github.com/yury-nazarov/gofermart/internal/app/storage/pg"
-	"github.com/yury-nazarov/gofermart/internal/app/storage/repository"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 )
 
 // DBConfig добавляя поля в структуру можно настраивать приложение для подключения к конкретной СУБД.
@@ -13,8 +12,8 @@ type DBConfig struct {
 	PGConnStr	string
 }
 
-// New возвращет ссылку на подключение к БД, инициируем схему.
-func New(conf DBConfig, logger *log.Logger) repository.Repository {
+// NewDB возвращет ссылку на подключение к БД, инициируем схему.
+func NewDB(conf DBConfig, logger *log.Logger) DBInterface {
 	if len(conf.PGConnStr) != 0 {
 		db := pg.New(conf.PGConnStr)
 		// Проверяем соединение с БД
@@ -29,5 +28,10 @@ func New(conf DBConfig, logger *log.Logger) repository.Repository {
 		return db
 	}
 	logger.Fatal("DB not selected")
+	return nil
+}
+
+// NewAccrual Создает клиент для отправки запросов в систему рассчета баллов
+func NewAccrual(accrualAddress string, logger *log.Logger) AccrualInterface {
 	return nil
 }

@@ -7,10 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/yury-nazarov/gofermart/internal/app/accrual"
 	"github.com/yury-nazarov/gofermart/internal/app/handler"
 	"github.com/yury-nazarov/gofermart/internal/app/logger"
-	"github.com/yury-nazarov/gofermart/internal/app/storage"
+	"github.com/yury-nazarov/gofermart/internal/app/repository"
 )
 
 func main() {
@@ -21,13 +20,13 @@ func main() {
 	serverAddress, accrualAddress, pgConfig := initParams(logger)
 
 	// Инициируем БД и создаем соединение
-	db := storage.New(storage.DBConfig{PGConnStr: pgConfig}, logger)
+	db := repository.NewDB(repository.DBConfig{PGConnStr: pgConfig}, logger)
 
 	// Запускаем по тикеру горутины которые будут периодически опрашивать accrualServer и обновлять значение в БД
-	accrual.Start(accrualAddress, logger)
+	accrual := repository.NewAccrual(accrualAddress, logger)
 
 	// Инициируем объект для доступа к хендлерам
-	c := handler.New(db, logger)
+	c := handler.New(db, accrual, logger)
 
 	// инициируем роутер
 	router := handler.NewRouter(c)

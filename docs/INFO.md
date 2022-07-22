@@ -2,12 +2,8 @@
 
 Postgres запущен в контейнере:
 ```shell
-docker run --name gofermart \
-            -p 5432:5432 \
-            -e POSTGRES_USER=gpfemart \
-            -e POSTGRES_DB=gpfemart \
-            -e POSTGRES_PASSWORD=supersecret$ \
-            -d postgres:13.3
+cd deployments
+docker-compose up
 ```
 
 Run app with arguments

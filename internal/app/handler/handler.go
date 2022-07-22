@@ -4,21 +4,22 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/yury-nazarov/gofermart/internal/app/storage/repository"
+	"github.com/yury-nazarov/gofermart/internal/app/repository"
 )
 
 type Controller struct {
-	db     repository.Repository
-	logger *log.Logger
+	db     		repository.DBInterface
+	accrual 	repository.AccrualInterface
+	logger 		*log.Logger
 	// as accrualService
 }
 
 // New объект через который получаем доступ к основным ручкам обслуживающим энедпоинты
-// 		TODO: Для хендлеров можно попробовать логер передовать через контекст
-func New(db repository.Repository, logger *log.Logger) *Controller {
+func New(db repository.DBInterface, accrual repository.AccrualInterface, logger *log.Logger) *Controller {
 	c := &Controller{
-		db:     db,
-		logger: logger,
+		db:     	db,
+		accrual: 	accrual,
+		logger: 	logger,
 	}
 	return c
 }

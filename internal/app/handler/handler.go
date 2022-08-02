@@ -1,23 +1,31 @@
 package handler
 
 import (
+	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
+	"github.com/yury-nazarov/gofermart/internal/app/service"
 	"log"
 	"net/http"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository"
 )
 
+
 type Controller struct {
-	db     		repository.DBInterface
+	//db     		repository.DBInterface
+	user		auth.UserInterface
+	order 		service.OrderInterface
+	balance 	service.BalanceInterface
 	accrual 	repository.AccrualInterface
 	logger 		*log.Logger
 	// as accrualService
 }
 
-// New объект через который получаем доступ к основным ручкам обслуживающим энедпоинты
-func New(db repository.DBInterface, accrual repository.AccrualInterface, logger *log.Logger) *Controller {
+
+func New(user auth.UserInterface, order service.OrderInterface, balance service.BalanceInterface, accrual repository.AccrualInterface, logger *log.Logger) *Controller {
 	c := &Controller{
-		db:     	db,
+		user: 		user,
+		order: 		order,
+		balance: 	balance,
 		accrual: 	accrual,
 		logger: 	logger,
 	}
@@ -26,7 +34,45 @@ func New(db repository.DBInterface, accrual repository.AccrualInterface, logger 
 
 // Register регистрация пользователя
 func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
-
+	//// Читаем присланые данные
+	//bodyData , err := io.ReadAll(r.Body)
+	//if err != nil || len(bodyData) == 0 {
+	//	c.logger.Printf("the HTTP Body parsing error: %w", err)
+	//	w.WriteHeader(http.StatusBadRequest)
+	//}
+	//
+	//// Unmarshal JSON
+	//var user auth.User
+	//if err = json.Unmarshal(bodyData, &user); err != nil {
+	//	c.logger.Printf("unmarshal json error: %w", err)
+	//	w.WriteHeader(http.StatusBadRequest)
+	//}
+	//
+	//// Проверяем наличие пользователя в БД
+	//ok, err := auth.IsUserExist(r.Context(), user.Login)
+	//if err != nil {
+	//	c.logger.Printf("executing isUserExist() error: %w", err)
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//}
+	//// Пользователь уже существует
+	//if ok {
+	//	c.logger.Printf("%s user exist", user.Login)
+	//	w.WriteHeader(http.StatusConflict)
+	//}
+	//// Добавляем пользователя
+	//token, err := auth.NewUserToken(r.Context(), user.Login, user.Password)
+	//if err != nil {
+	//	c.logger.Printf("executing newUserToken() error: %w", err)
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//}
+	//
+	//// Отправялем ответ клиенту, записав токен в заголовок
+	//w.Header().Set("Authorization", token)
+	//
+	//if err != nil {
+	//	c.logger.Printf("write HTTP answer error: %w", err)
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//}
 }
 
 // Login аутентификация пользователя

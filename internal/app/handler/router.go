@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -8,7 +9,8 @@ import (
 )
 
 // NewRouter - создает роутер. Внутри определяем все ручки
-func NewRouter(c *Controller) http.Handler {
+//				TODO: user auth.UserInterface - для передачи в Middleware во время регистрации
+func NewRouter(c *Controller, user auth.UserInterface) http.Handler {
 	// Инициируем Router
 	r := chi.NewRouter()
 

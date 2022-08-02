@@ -3,18 +3,20 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
+	"github.com/yury-nazarov/gofermart/internal/app/service"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/yury-nazarov/gofermart/internal/app/handler"
-	"github.com/yury-nazarov/gofermart/internal/app/logger"
 	"github.com/yury-nazarov/gofermart/internal/app/repository"
+	"github.com/yury-nazarov/gofermart/pkg/logger"
 )
 
 func main() {
 	// Устанавливаем логгер
-	logger := logger.NewLogger()
+	logger := logger.NewLogger("gofermart")
 
 	// Иницииреуем необходимые переменные для работы сервиса из аргументов или env
 	serverAddress, accrualAddress, pgConfig := initParams(logger)
@@ -22,14 +24,23 @@ func main() {
 	// Инициируем БД и создаем соединение
 	db := repository.NewDB(repository.DBConfig{PGConnStr: pgConfig}, logger)
 
+	// Регистрация и авторизация пользователя
+	user := auth.NewAuth(db, logger)
+
 	// Запускаем по тикеру горутины которые будут периодически опрашивать accrualServer и обновлять значение в БД
-	accrual := repository.NewAccrual(accrualAddress, logger)
+	accrual := repository.NewAccrual(accrualAddress, db, logger)
+
+	// Бизнес логика работы с заказами
+	order := service.NewOrder(db, logger)
+
+	// Бизнес логика работы с балансом пользователя
+	balance := service.NewBalance(db, logger)
 
 	// Инициируем объект для доступа к хендлерам
-	c := handler.New(db, accrual, logger)
+	c := handler.New(user, order, balance, accrual, logger)
 
 	// инициируем роутер
-	router := handler.NewRouter(c)
+	router := handler.NewRouter(c, user)
 
 	// Запускаем сервер
 	logger.Fatal(http.ListenAndServe(serverAddress, router))

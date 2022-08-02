@@ -1,5 +1,13 @@
 package repository
 
+/*
+	Конструктор объектов
+	Создает
+		- соединение с БД
+		- HTTP клиент и запусает его по тикеру
+		- Прочие взаиможействия с источниками данных
+*/
+
 import (
 	"log"
 
@@ -32,6 +40,6 @@ func NewDB(conf DBConfig, logger *log.Logger) DBInterface {
 }
 
 // NewAccrual Создает клиент для отправки запросов в систему рассчета баллов
-func NewAccrual(accrualAddress string, logger *log.Logger) AccrualInterface {
+func NewAccrual(accrualAddress string, db DBInterface, logger *log.Logger) AccrualInterface {
 	return nil
 }

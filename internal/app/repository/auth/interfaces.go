@@ -1,5 +1,6 @@
 package auth
 
+import "context"
 
 /*
 	Регистрации, аутентификации и проверки пользовательских сессий
@@ -7,9 +8,9 @@ package auth
 
 type UserInterface interface {
 	// SignUp Регистрирует пользователя
-	SignUp(login string, password string) error
+	SignUp(ctx context.Context, login string, password string) (string, error, error)
 	// SignIn Авторизует пользователя
-	SignIn(login string, password string) error
+	SignIn(ctx context.Context, login string, password string) (string, error)
 	// IsUserSignIn Проверяет авторизован ли пользователь
 	IsUserSignIn(token string) (bool, error)
 }

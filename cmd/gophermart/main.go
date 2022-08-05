@@ -3,14 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
-	"github.com/yury-nazarov/gofermart/internal/app/service"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/yury-nazarov/gofermart/internal/app/handler"
 	"github.com/yury-nazarov/gofermart/internal/app/repository"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
+	"github.com/yury-nazarov/gofermart/internal/app/service"
 	"github.com/yury-nazarov/gofermart/pkg/logger"
 )
 
@@ -24,8 +25,13 @@ func main() {
 	// Инициируем БД и создаем соединение
 	db := repository.NewDB(repository.DBConfig{PGConnStr: pgConfig}, logger)
 
+	// Инициируем loginCache для проверки сессии пользователя
+	// TODO: 1. Переименовать в NewLoginSession().
+	//		 2. Передовать по ссылке иначе оно будет копироватся
+	loginSession := cache.NewLoginCache()
+
 	// Регистрация и авторизация пользователя
-	user := auth.NewAuth(db, logger)
+	user := auth.NewAuth(db, loginSession, logger)
 
 	// Запускаем по тикеру горутины которые будут периодически опрашивать accrualServer и обновлять значение в БД
 	accrual := repository.NewAccrual(accrualAddress, db, logger)
@@ -37,7 +43,7 @@ func main() {
 	balance := service.NewBalance(db, logger)
 
 	// Инициируем объект для доступа к хендлерам
-	c := handler.New(user, order, balance, accrual, logger)
+	c := handler.New(user, loginSession, order, balance, accrual, logger)
 
 	// инициируем роутер
 	router := handler.NewRouter(c, user)

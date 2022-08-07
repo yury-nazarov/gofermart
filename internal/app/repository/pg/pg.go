@@ -81,11 +81,24 @@ func (p *pg) UserExist(ctx context.Context, login string) (bool, error) {
 }
 
 // NewUser - создает нового пользователя и возвращает его id
-func (p *pg) NewUser(ctx context.Context, login string, pwd string)  (int, error) {
+func (p *pg) NewUser(ctx context.Context, login string, hashPwd string)  (int, error) {
 	lastInsertID := 0
-	err := p.db.QueryRow(`INSERT INTO app_user (login, password) VALUES ($1, $2) RETURNING id`, login, pwd).Scan(&lastInsertID)
+	err := p.db.QueryRow(`INSERT INTO app_user (login, password) VALUES ($1, $2) RETURNING id`, login, hashPwd).Scan(&lastInsertID)
 	if err != nil {
 		return 0, fmt.Errorf("new user insert error: %s", err)
 	}
+	fmt.Printf("lastInsertID %d for user %s\n", lastInsertID, login)
 	return lastInsertID, nil
+}
+
+// UserIsValid - Делает SQL в БД если по login и хеш пароля есть запись - значит пользователь существует и валиден.
+func (p *pg) UserIsValid(ctx context.Context, login string, hashPwd string) (userID int, err error) {
+	err = p.db.QueryRowContext(ctx, `SELECT app_user.id FROM app_user
+											WHERE login=$1
+											AND password=$2
+											LIMIT 1`, login, hashPwd).Scan(&userID)
+	if err != nil {
+		return 0, fmt.Errorf("user not found: %s", err)
+	}
+	return userID, nil
 }

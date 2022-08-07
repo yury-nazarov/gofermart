@@ -46,6 +46,7 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	// Передаем в лой бизнес логики
 	// Регистрируем пользователя
 	token, err409, err500 := c.user.SignUp(r.Context(), user.Login, user.Password)
 	if err409 != nil {
@@ -62,8 +63,32 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 // Login аутентификация пользователя
+// 		200 — пользователь успешно аутентифицирован;
+//		400 — неверный формат запроса;
+//		401 — неверная пара логин/пароль или пользователь не существует;
+//		500 — внутренняя ошибка сервера.
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
+	// Читаем присланые данные
+	user := auth.User{}
+	err400 := c.JSONError400(r, &user)
+	if err400 != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// Передаем в лой бизнес логики
+	token, err401, err500 := c.user.SignIn(r.Context(), user.Login, user.Password)
+	if err401 != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	if err500 != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
+	// Отправялем ответ клиенту, записав токен в заголовок
+	w.Header().Set("Authorization", token)
+	w.WriteHeader(http.StatusOK)
 }
 
 // AddOrders загрузка пользователем номера заказа для расчёта

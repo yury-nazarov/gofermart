@@ -2,14 +2,13 @@ package auth
 
 import (
 	"context"
+	"crypto/md5"
 	"crypto/rand"
 	"fmt"
 	"log"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type authLocalStruct struct {
@@ -27,7 +26,7 @@ func NewAuth(db repository.DBInterface, loginSession cache.UserSessionInterface,
 }
 
 // SignUp регистрация пользователя
-func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (string, error, error) {
+func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (token string, err400 error, err500 error) {
 	ok, err := a.db.UserExist(ctx, login)
 	// Error500
 	if err != nil {
@@ -43,12 +42,8 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 	}
 
 	// Считаем хеш пароля
-	hashPwd, err := hashPassword(password)
-	if err != nil {
-		errString := fmt.Sprintf("hashPassword error: %s", err)
-		a.logger.Print(errString)
-		return "", nil, fmt.Errorf("%s", errString)
-	}
+	hashPwd := hashPassword(password)
+
 	// Записываем логин и хеш пароля в БД
 	userID, err := a.db.NewUser(ctx, login, hashPwd)
 	if err != nil {
@@ -58,7 +53,7 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 	}
 
 	// Генерим Токен, добавляем токен и userID в сессию
-	token := newToken()
+	token = newToken()
 	err = a.loginSession.Add(token, userID)
 	if err != nil {
 		errString := fmt.Sprintf("add token to session: %s", err)
@@ -71,9 +66,36 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 	return token, nil, nil
 }
 
+// SignIn вход пользователя
+func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (token string, err401 error, err500 error) {
+	// Считаем хеш пароля
+	hashPwd := hashPassword(password)
+	// TODO: DEBUG
+	a.logger.Printf("DEBUG: Calculate hash. User %d, has: %s", login, hashPwd)
 
-func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (string, error) {
-	return "", nil
+	// Проверяем в БД наличие пользователя
+	userID, err401 := a.db.UserIsValid(ctx, login, hashPwd)
+	if err401 != nil {
+		errString := fmt.Sprintf("incorrect login or password: %s", err401)
+		a.logger.Print(errString)
+		return "", fmt.Errorf("%s", errString), nil
+	}
+	// TODO: DEBUG
+	a.logger.Printf("DEBUG: User %s exist with hash pwd: %s", login, hashPwd)
+
+	// Генерим токен, добавляем в сессию
+	token = newToken()
+	err := a.loginSession.Add(token, userID)
+	if err != nil {
+		errString := fmt.Sprintf("error add token to session: %s", err)
+		a.logger.Print(errString)
+		return "", nil, fmt.Errorf("%s", errString)
+	}
+	// TODO: DEBUG
+	a.logger.Printf("DEBUG: User %s: Add  user id: % and token: %s in to session", login, userID, token)
+
+	return token, nil, nil
+
 }
 
 func (a authLocalStruct) IsUserSignIn(token string) (bool, error) {
@@ -82,13 +104,19 @@ func (a authLocalStruct) IsUserSignIn(token string) (bool, error) {
 
 // newToken создает токен
 func newToken() string {
-	b := make([]byte, 4)
+	b := make([]byte, 16)
 	rand.Read(b)
 	return fmt.Sprintf("%x", b)
 }
 
+//// hashPassword считает хеш из пароля - при этом каждый раз разный. Больше подходит для токена))
+//func hashPassword(password string) (string, error) {
+//	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+//	return string(bytes), err
+//}
+
 // hashPassword считает хеш из пароля
-func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
+func hashPassword(password string) string {
+	hashPwd := md5.Sum([]byte(password))
+	return fmt.Sprintf("%x", hashPwd)
 }

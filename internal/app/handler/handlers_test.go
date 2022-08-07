@@ -2,13 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/yury-nazarov/gofermart/internal/app/repository"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
-	"github.com/yury-nazarov/gofermart/internal/app/service"
-	"github.com/yury-nazarov/gofermart/pkg/logger"
 	"io/ioutil"
 	"log"
 	"net"
@@ -16,18 +9,33 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/yury-nazarov/gofermart/internal/app/repository"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
+	"github.com/yury-nazarov/gofermart/internal/app/service"
+	"github.com/yury-nazarov/gofermart/pkg/logger"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// Инициируем тестовый сервер
-
+//// TODO: Временная штука пока я не научусь делать моки
+////uniqUsername уникальное имя пользователя для тестов
+//func uniqUsername(userName string) string{
+//	bytes, err := bcrypt.GenerateFromPassword([]byte(userName), 14)
+//	if err != nil {
+//		log.Printf("username error: %s", err)
+//	}
+//	return string(bytes)
+//}
 // NewTestServer - конфигурируем тестовый сервер,
 func NewTestServer() *httptest.Server {
-
 	// Устанавливаем логгер
 	logger := logger.NewLogger("test gofermart")
 
 	// Иницииреуем необходимые переменные для работы сервиса из аргументов или env
-	serverAddress := "127.0.0.1:8080"
+	serverAddress := "127.0.0.1:8081"
 	accrualAddress := "127.0.0.1"
 	pgConfig := "host=localhost port=5432 user=gofermart password=gofermart dbname=gofermart sslmode=disable connect_timeout=5"
 
@@ -102,9 +110,6 @@ func testRequest(t *testing.T, method, path string, body string, headers map[str
 }
 
 
-// Tests
-
-
 func TestController_RegisterUser(t *testing.T) {
 	// Параметры для настройки тестового HTTP Request
 	type request struct {
@@ -130,8 +135,8 @@ func TestController_RegisterUser(t *testing.T) {
 			name: "test_1: POST: Create new user [HTTP 200]",
 			request: request{
 				httpMethod: http.MethodPost,
-				url:        "http://127.0.0.1:8080/api/user/register",
-				body:       `{ "login": "newUser_1","password": "104430"}`,
+				url:        "http://127.0.0.1:8081/api/user/register",
+				body:       `{ "login": "TestUser_1","password": "123123"}`,
 				headers:    map[string]string{"Content-Type": "application/json"},
 			},
 			want: want{
@@ -145,8 +150,8 @@ func TestController_RegisterUser(t *testing.T) {
 			request: request{
 				// TODO: При не корректном JSON зарегал пользователя с пустыми параметрами!
 				httpMethod: http.MethodPost,
-				url:        "http://127.0.0.1:8080/api/user/register",
-				body:       `{ "login": "newUser_1","password": "104430"}`,
+				url:        "http://127.0.0.1:8081/api/user/register",
+				body:       `{ "login": "TestUser_1","password": "123123"}`,
 				headers:    map[string]string{"Content-Type": "application/json"},
 			},
 			want: want{
@@ -157,7 +162,7 @@ func TestController_RegisterUser(t *testing.T) {
 		//	name: "test_3: POST: Incorrect request [HTTP 409]",
 		//	request: request{
 		//		httpMethod: http.MethodPost,
-		//		url:        "http://127.0.0.1:8080/api/user/register",
+		//		url:        "http://127.0.0.1:8081/api/user/register",
 		//		body:       `{ "logi": "newUser_1","password": "104430"}`, // Incorrect JSON struct
 		//		headers:    map[string]string{"Content-Type": "application/json"},
 		//	},
@@ -169,8 +174,8 @@ func TestController_RegisterUser(t *testing.T) {
 			name: "test_3_1: POST: Incorrect request [HTTP 409]",
 			request: request{
 				httpMethod: http.MethodPost,
-				url:        "http://127.0.0.1:8080/api/user/register",
-				body:       `{ "login": "newUser_1","password": "104430"`, // Incorrect JSON struct
+				url:        "http://127.0.0.1:8081/api/user/register",
+				body:       `{ "login": "TestUser_1","password": "123123"`, // Incorrect JSON struct
 				headers:    map[string]string{"Content-Type": "application/json"},
 			},
 			want: want{
@@ -181,8 +186,8 @@ func TestController_RegisterUser(t *testing.T) {
 			name: "test_4: POST: User exist [HTTP 409]",
 			request: request{
 				httpMethod: http.MethodPost,
-				url:        "http://127.0.0.1:8080/api/user/register",
-				body:       `{ "login": "newUser_1","password": "104430"}`,
+				url:        "http://127.0.0.1:8081/api/user/register",
+				body:       `{ "login": "TestUser_1","password": "123123"}`,
 				headers:    map[string]string{"Content-Type": "application/json"},
 			},
 			want: want{
@@ -208,3 +213,84 @@ func TestController_RegisterUser(t *testing.T) {
 	}
 	ts.Close()
 }
+
+// TestController_LogInUser
+func TestController_LogInUser(t *testing.T) {
+	// Параметры для настройки тестового HTTP Request
+	type request struct {
+		httpMethod string
+		url        string
+		headers    map[string]string
+		body       string
+	}
+	// Ожидаемый ответ сервера
+	type want struct {
+		statusCode int
+		headers    map[string]string
+		body       string
+	}
+	// Список тесткейсов
+	tests := []struct {
+		name    string
+		request request
+		want    want
+	}{
+		// Testcases
+		{
+			name: "test_1: POST: LogIn [HTTP 200]",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8081/api/user/login",
+				body:       `{ "login": "TestUser_1","password": "123123"}`,
+				headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			want: want{
+				statusCode: http.StatusOK,
+			},
+		},
+		{
+			name: "test_2: POST: Incorrect request format [HTTP 400]",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8081/api/user/login",
+				body:       `{ "login": "TestUser_1","password": "123123"`,
+				headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			want: want{
+				statusCode: http.StatusBadRequest,
+			},
+		},
+		{
+			name: "test_3_1: POST: Incorrect login or password [HTTP 401]",
+			request: request{
+				httpMethod: http.MethodPost,
+				url:        "http://127.0.0.1:8081/api/user/login",
+				body:       `{ "login": "TestUser_1","password": "123"}`,
+				headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			want: want{
+				statusCode: http.StatusUnauthorized,
+			},
+		},
+		// TODO: How test HTTP 500 Error?
+	}
+	ts := NewTestServer()
+	ts.Start()
+	for _, tt := range tests {
+		testName := fmt.Sprintf("%s.", tt.name)
+		t.Run(testName, func(t *testing.T) {
+			// Выполняем тестовый HTTP Request
+			resp, body := testRequest(t, tt.request.httpMethod, tt.request.url, tt.request.body, tt.request.headers)
+			defer resp.Body.Close() // go vet test
+
+			assert.Equal(t, tt.want.headers["Content-Type"], resp.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.want.body, body)
+
+		})
+	}
+	ts.Close()
+}
+
+
+

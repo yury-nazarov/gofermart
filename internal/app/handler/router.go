@@ -25,8 +25,10 @@ func NewRouter(c *Controller, session cache.UserSessionInterface, logger *log.Lo
 	// API endpoints
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/user", func(r chi.Router) {
+			// Публичные эндпоинты
 			r.Post("/register", c.Register)
 			r.Post("/login", c.Login)
+			// Секция с эндпоинтами требующими авторизации
 			r.Group(func(r chi.Router) {
 				r.Use(auth.HTTPTokenExist(session, logger))
 				r.Route("/orders", func(r chi.Router) {

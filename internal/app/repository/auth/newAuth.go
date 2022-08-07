@@ -26,7 +26,7 @@ func NewAuth(db repository.DBInterface, loginSession cache.UserSessionInterface,
 	}
 }
 
-
+// SignUp регистрация пользователя
 func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (string, error, error) {
 	ok, err := a.db.UserExist(ctx, login)
 	// Error500

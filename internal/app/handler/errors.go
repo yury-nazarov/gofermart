@@ -12,13 +12,13 @@ import (
 func  (c *Controller) JSONError400(r *http.Request, anyData interface{})  error {
 	bodyData , err := io.ReadAll(r.Body)
 	if err != nil || len(bodyData) == 0 {
-		c.logger.Printf("the HTTP Body parsing error: %w", err)
+		c.logger.Printf("the HTTP Body parsing error: %s", err)
 		return err
 	}
 
 	// Unmarshal JSON
 	if err = json.Unmarshal(bodyData, &anyData); err != nil {
-		c.logger.Printf("unmarshal json error: %w", err)
+		c.logger.Printf("unmarshal json error: %s", err)
 		return err
 	}
 	return nil

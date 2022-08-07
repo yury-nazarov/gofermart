@@ -6,8 +6,9 @@ import (
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
-	"github.com/yury-nazarov/gofermart/internal/app/service"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
+	"github.com/yury-nazarov/gofermart/internal/app/service/balance"
+	"github.com/yury-nazarov/gofermart/internal/app/service/order"
 )
 
 
@@ -15,15 +16,15 @@ type Controller struct {
 	//db     		repository.DBInterface
 	user			auth.UserInterface
 	loginSession	cache.UserSessionInterface
-	order 			service.OrderInterface
-	balance 		service.BalanceInterface
+	order 			order.OrderInterface
+	balance 		balance.BalanceInterface
 	accrual 		repository.AccrualInterface
 	logger 			*log.Logger
 	// as accrualService
 }
 
 
-func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order service.OrderInterface, balance service.BalanceInterface, accrual repository.AccrualInterface, logger *log.Logger) *Controller {
+func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order order.OrderInterface, balance balance.BalanceInterface, accrual repository.AccrualInterface, logger *log.Logger) *Controller {
 	c := &Controller{
 		user: 			user,
 		loginSession: 	loginSession,

@@ -1,4 +1,4 @@
-package service
+package order
 
 /*
 	Описывает интерфейсы работы со слоем
@@ -6,9 +6,5 @@ package service
 */
 
 type OrderInterface interface {
-
-}
-
-type BalanceInterface interface {
 
 }

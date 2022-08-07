@@ -2,6 +2,8 @@ package handler
 
 import (
 	"fmt"
+	"github.com/yury-nazarov/gofermart/internal/app/service/balance"
+	"github.com/yury-nazarov/gofermart/internal/app/service/order"
 	"io/ioutil"
 	"log"
 	"net"
@@ -12,7 +14,6 @@ import (
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
-	"github.com/yury-nazarov/gofermart/internal/app/service"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/pkg/logger"
 
@@ -54,10 +55,10 @@ func NewTestServer() *httptest.Server {
 	accrual := repository.NewAccrual(accrualAddress, db, logger)
 
 	// Бизнес логика работы с заказами
-	order := service.NewOrder(db, logger)
+	order := order.NewOrder(db, logger)
 
 	// Бизнес логика работы с балансом пользователя
-	balance := service.NewBalance(db, logger)
+	balance := balance.NewBalance(db, logger)
 
 	// Инициируем объект для доступа к хендлерам
 	c := New(user, loginSession, order, balance, accrual, logger)

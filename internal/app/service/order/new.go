@@ -1,8 +1,9 @@
-package service
+package order
 
 import (
-	"github.com/yury-nazarov/gofermart/internal/app/repository"
 	"log"
+
+	"github.com/yury-nazarov/gofermart/internal/app/repository"
 )
 
 type orderStruct struct {

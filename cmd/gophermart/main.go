@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/internal/app/service/balance"
+	"github.com/yury-nazarov/gofermart/internal/app/service/order"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +12,6 @@ import (
 	"github.com/yury-nazarov/gofermart/internal/app/handler"
 	"github.com/yury-nazarov/gofermart/internal/app/repository"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
-	"github.com/yury-nazarov/gofermart/internal/app/service"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/pkg/logger"
 )
@@ -37,10 +38,10 @@ func main() {
 	accrual := repository.NewAccrual(accrualAddress, db, logger)
 
 	// Бизнес логика работы с заказами
-	order := service.NewOrder(db, logger)
+	order := order.NewOrder(db, logger)
 
 	// Бизнес логика работы с балансом пользователя
-	balance := service.NewBalance(db, logger)
+	balance := balance.NewBalance(db, logger)
 
 	// Инициируем объект для доступа к хендлерам
 	c := handler.New(user, loginSession, order, balance, accrual, logger)

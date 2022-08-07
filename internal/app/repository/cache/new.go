@@ -6,14 +6,14 @@ type userSessionStruct struct {
 }
 
 
-// NewLoginCache Создает объект для хранения в RAM залогиненых пользователей и токенов для них
+// NewLoginCache - Создает объект для хранения в RAM залогиненых пользователей и токенов для них
 func NewLoginCache() *userSessionStruct {
 	return &userSessionStruct{
 		data: map[string]int{},
 	}
 }
 
-
+// Add - 	добавить токен в кеш. На пример LogIn
 func (l *userSessionStruct) Add(token string, userID int) error {
 	l.data[token] = userID
 	return nil

@@ -65,7 +65,7 @@ func NewTestServer() *httptest.Server {
 	c := New(user, loginSession, order, balance, accrual, logger)
 
 	// инициируем роутер
-	router := NewRouter(c, loginSession, logger)
+	router := NewRouter(c, user, logger)
 
 	// Настраиваем адрес/порт который будут слушать тестовый сервер
 	listener, err := net.Listen("tcp", serverAddress)

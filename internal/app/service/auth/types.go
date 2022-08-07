@@ -8,7 +8,7 @@ type UserInterface interface {
 	// SignIn Авторизует пользователя
 	SignIn(ctx context.Context, login string, password string) (token string, err401 error, err500 error)
 	// IsUserSignIn Проверяет авторизован ли пользователь
-	IsUserSignIn(token string) (ok bool, err error)
+	IsUserSignIn(token string) (userID int, err500 error)
 }
 
 // User структура для JSON Unmarshal из HTTP Request

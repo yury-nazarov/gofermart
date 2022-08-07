@@ -47,7 +47,7 @@ func main() {
 	c := handler.New(user, loginSession, order, balance, accrual, logger)
 
 	// инициируем роутер
-	router := handler.NewRouter(c, loginSession, logger)
+	router := handler.NewRouter(c, user, logger)
 
 	// Запускаем сервер
 	logger.Fatal(http.ListenAndServe(serverAddress, router))

@@ -98,8 +98,20 @@ func (a authLocalStruct) SignIn(ctx context.Context, login string, password stri
 
 }
 
-func (a authLocalStruct) IsUserSignIn(token string) (bool, error) {
-	return true, nil
+func (a authLocalStruct) IsUserSignIn(token string) (userID int, err500 error) {
+	userID, err := a.loginSession.GetUserIDByToken(token)
+	// Ошибка работы с кешем
+	if err != nil {
+		a.logger.Printf("session storage have error: %s", err500)
+		return 0,  err500
+	}
+	// Токен не найден
+	if userID == 0 {
+		a.logger.Printf("Token not exist")
+		return 0, nil
+	}
+	// Токен найден
+	return userID,  nil
 }
 
 // newToken создает токен

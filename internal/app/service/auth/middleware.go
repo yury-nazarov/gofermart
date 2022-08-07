@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
 	"log"
 	"net/http"
 )
@@ -18,20 +17,20 @@ import (
 */
 
 // HTTPTokenExist Проверяет наличие токена
-func HTTPTokenExist(session cache.UserSessionInterface, logger *log.Logger) func(next http.Handler) http.Handler {
+func HTTPTokenExist(user UserInterface, logger *log.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			// Получаем токен из хедера
+			// Получаем токен из хедера и проверяем его в сессии
 			token := r.Header.Get("Authorization")
-
-			// Если токен есть в кеше - считаем пользователя авторизованым
-			userID, err := session.GetUserIDByToken(token)
-			if err != nil {
-				logger.Printf("session storage have error: %s", err)
+			userID, err500 := user.IsUserSignIn(token)
+			// Что то пошло не так с кешем
+			if err500 != nil {
+				w.WriteHeader(http.StatusInternalServerError)
 			}
+
+			// Токен есть в кеше
 			if userID != 0 {
 				next.ServeHTTP(w, r)
-
 			}
 
 			// Остальные кейсы считаем пользователя не авторизованым
@@ -42,21 +41,4 @@ func HTTPTokenExist(session cache.UserSessionInterface, logger *log.Logger) func
 }
 
 
-//func HTTPTokenExist(next http.Handler) http.Handler {
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		token := r.Header.Get("Authorization")
-//		// Если токен не установлен - считаем пользователя не авторизованым
-//		if len(token) == 0 {
-//			w.WriteHeader(http.StatusUnauthorized)
-//			return
-//		}
-//
-//		tokenExist, err :=
-//		if {
-//			w.WriteHeader(http.StatusUnauthorized)
-//			return
-//		}
-//		next.ServeHTTP(w, r)
-//
-//	})
-//}
+

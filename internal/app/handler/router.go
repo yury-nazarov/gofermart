@@ -23,7 +23,7 @@ func NewRouter(c *Controller, user auth.UserInterface) http.Handler {
 	// API endpoints
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/user", func(r chi.Router) {
-			r.Post("/register", c.Register)
+			//r.Post("/register", c.Register)
 			r.Post("/login", c.Login)
 			r.Route("/orders", func(r chi.Router) {
 				r.Post("/", c.AddOrders)

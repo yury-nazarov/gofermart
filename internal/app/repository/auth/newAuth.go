@@ -71,7 +71,7 @@ func (a authLocalStruct) SignIn(ctx context.Context, login string, password stri
 	// Считаем хеш пароля
 	hashPwd := hashPassword(password)
 	// TODO: DEBUG
-	a.logger.Printf("DEBUG: Calculate hash. User %d, has: %s", login, hashPwd)
+	a.logger.Printf("DEBUG: Calculate hash. User %s, has: %s", login, hashPwd)
 
 	// Проверяем в БД наличие пользователя
 	userID, err401 := a.db.UserIsValid(ctx, login, hashPwd)
@@ -92,7 +92,7 @@ func (a authLocalStruct) SignIn(ctx context.Context, login string, password stri
 		return "", nil, fmt.Errorf("%s", errString)
 	}
 	// TODO: DEBUG
-	a.logger.Printf("DEBUG: User %s: Add  user id: % and token: %s in to session", login, userID, token)
+	a.logger.Printf("DEBUG: User %s: Add  user id: %d and token: %s in to session", login, userID, token)
 
 	return token, nil, nil
 

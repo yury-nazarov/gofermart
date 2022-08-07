@@ -39,6 +39,10 @@ func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order
 // TODO: 04/08/22 Реализуем ручку для регимстрации пользователя: Register
 
 // Register регистрация пользователя
+// 			200 — пользователь успешно аутентифицирован;
+//			400 — неверный формат запроса;
+//			401 — неверная пара логин/пароль;
+//			500 — внутренняя ошибка сервера.
 func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	user := auth.User{}
@@ -47,7 +51,7 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	// Передаем в лой бизнес логики
+	// Передаем в cлой бизнес логики
 	// Регистрируем пользователя
 	token, err409, err500 := c.user.SignUp(r.Context(), user.Login, user.Password)
 	if err409 != nil {

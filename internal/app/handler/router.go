@@ -36,6 +36,8 @@ func NewRouter(c *Controller, session cache.UserSessionInterface, logger *log.Lo
 				r.Route("/balance", func(r chi.Router) {
 					r.Get("/", c.GetBalance)
 					r.Get("/withdrawals", c.Withdrawals)
+				})
+				r.Route("/", func(r chi.Router) {
 					r.Post("/withdraw", c.Withdraw)
 				})
 			})

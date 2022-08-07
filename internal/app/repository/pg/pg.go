@@ -82,10 +82,10 @@ func (p *pg) UserExist(ctx context.Context, login string) (bool, error) {
 
 // NewUser - создает нового пользователя и возвращает его id
 func (p *pg) NewUser(ctx context.Context, login string, pwd string)  (int, error) {
-	lastInsertId := 0
-	err := p.db.QueryRow(`INSERT INTO app_user (login, password) VALUES ($1, $2) RETURNING id`, login, pwd).Scan(&lastInsertId)
+	lastInsertID := 0
+	err := p.db.QueryRow(`INSERT INTO app_user (login, password) VALUES ($1, $2) RETURNING id`, login, pwd).Scan(&lastInsertID)
 	if err != nil {
 		return 0, fmt.Errorf("new user insert error: %s", err)
 	}
-	return lastInsertId, nil
+	return lastInsertID, nil
 }

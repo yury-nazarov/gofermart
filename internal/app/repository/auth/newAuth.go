@@ -50,16 +50,16 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 		return "", nil, fmt.Errorf("%s", errString)
 	}
 	// Записываем логин и хеш пароля в БД
-	userId, err := a.db.NewUser(ctx, login, hashPwd)
+	userID, err := a.db.NewUser(ctx, login, hashPwd)
 	if err != nil {
 		errString := fmt.Sprintf("NewUser sql querry error: %s", err)
 		a.logger.Print(errString)
 		return "", fmt.Errorf("%s", errString), nil
 	}
 
-	// Генерим Токен, добавляем токен и userId в сессию
+	// Генерим Токен, добавляем токен и userID в сессию
 	token := newToken()
-	err = a.loginSession.Add(token, userId)
+	err = a.loginSession.Add(token, userID)
 	if err != nil {
 		errString := fmt.Sprintf("add token to session: %s", err)
 		a.logger.Print(errString)

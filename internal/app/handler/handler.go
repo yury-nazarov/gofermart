@@ -59,7 +59,6 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	// Отправялем ответ клиенту, записав токен в заголовок
 	w.Header().Set("Authorization", token)
 	w.WriteHeader(http.StatusOK)
-	return
 }
 
 // Login аутентификация пользователя

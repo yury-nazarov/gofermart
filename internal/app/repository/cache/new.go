@@ -16,16 +16,16 @@ func NewLoginCache() *userSessionStruct {
 }
 
 
-func (l *userSessionStruct) Add(token string, userId int) error {
-	l.data[token] = userId
+func (l *userSessionStruct) Add(token string, userID int) error {
+	l.data[token] = userID
 	return nil
 }
 
 
-func (l *userSessionStruct) GetUserIdByToken(token string) (int, error) {
-	userId, ok := l.data[token]
+func (l *userSessionStruct) GetUserIDByToken(token string) (int, error) {
+	userID, ok := l.data[token]
 	if ok {
-		return userId, nil
+		return userID, nil
 	}
 	return 0, fmt.Errorf("token not exist in session")
 }

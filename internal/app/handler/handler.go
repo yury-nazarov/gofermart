@@ -42,7 +42,7 @@ func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order
 func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	user := auth.User{}
-	err400 := c.JSONError400(r, &user)
+	err400 := JSONError400(r, &user, c.logger)
 	if err400 != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -71,7 +71,7 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	user := auth.User{}
-	err400 := c.JSONError400(r, &user)
+	err400 := JSONError400(r, &user, c.logger)
 	if err400 != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

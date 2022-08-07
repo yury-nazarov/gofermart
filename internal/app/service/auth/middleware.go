@@ -36,7 +36,6 @@ func HTTPTokenExist(session cache.UserSessionInterface, logger *log.Logger) func
 
 			// Остальные кейсы считаем пользователя не авторизованым
 			w.WriteHeader(http.StatusUnauthorized)
-			return
 		}
 		return http.HandlerFunc(fn)
 	}

@@ -30,6 +30,7 @@ import (
 //	}
 //	return string(bytes)
 //}
+
 // NewTestServer - конфигурируем тестовый сервер,
 func NewTestServer() *httptest.Server {
 	// Устанавливаем логгер
@@ -64,7 +65,7 @@ func NewTestServer() *httptest.Server {
 	c := New(user, loginSession, order, balance, accrual, logger)
 
 	// инициируем роутер
-	router := NewRouter(c, user)
+	router := NewRouter(c, loginSession, logger)
 
 	// Настраиваем адрес/порт который будут слушать тестовый сервер
 	listener, err := net.Listen("tcp", serverAddress)

@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 )
 
 // NewRouter - создает роутер. Внутри определяем все ручки

@@ -9,9 +9,9 @@ import (
 
 	"github.com/yury-nazarov/gofermart/internal/app/handler"
 	"github.com/yury-nazarov/gofermart/internal/app/repository"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/auth"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
 	"github.com/yury-nazarov/gofermart/internal/app/service"
+	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/pkg/logger"
 )
 

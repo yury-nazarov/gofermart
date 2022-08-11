@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"log"
 	"net/http"
 
@@ -103,8 +104,8 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 //			500 — внутренняя ошибка сервера.
 func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	// Читаем и валидируем присланые данные
-	order := processing.Order{}
-	//order := pg.OrderDB{}
+	//order := processing.Order{}
+	order := pg.OrderDB{}
 
 	err400 := JSONError400(r, &order.Number, c.logger)
 	if err400 != nil {

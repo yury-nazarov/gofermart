@@ -1,4 +1,4 @@
-package repository
+package pg
 
 /*
 	Конструктор объектов
@@ -10,20 +10,18 @@ package repository
 
 import (
 	"log"
-
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 )
 
 // DBConfig добавляя поля в структуру можно настраивать приложение для подключения к конкретной СУБД.
 // 			в нашем случает существует только Postgres по условию задачи.
 type DBConfig struct {
-	PGConnStr	string
+	PGConnStr string
 }
 
 // NewDB возвращет ссылку на подключение к БД, инициируем схему.
 func NewDB(conf DBConfig, logger *log.Logger) DBInterface {
 	if len(conf.PGConnStr) != 0 {
-		db := pg.New(conf.PGConnStr)
+		db := New(conf.PGConnStr)
 		// Проверяем соединение с БД
 		if !db.Ping() {
 			logger.Fatal("DB not connected. Ping fail.")
@@ -36,10 +34,5 @@ func NewDB(conf DBConfig, logger *log.Logger) DBInterface {
 		return db
 	}
 	logger.Fatal("DB not selected")
-	return nil
-}
-
-// NewAccrual Создает клиент для отправки запросов в систему рассчета баллов
-func NewAccrual(accrualAddress string, db DBInterface, logger *log.Logger) AccrualInterface {
 	return nil
 }

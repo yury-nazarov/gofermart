@@ -1,42 +1,39 @@
 package handler
 
 import (
+	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
 	"log"
 	"net/http"
 
-	"github.com/yury-nazarov/gofermart/internal/app/repository"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
-	"github.com/yury-nazarov/gofermart/internal/app/service/balance"
-	"github.com/yury-nazarov/gofermart/internal/app/service/order"
+	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
+	"github.com/yury-nazarov/gofermart/internal/app/service/withdraw"
 )
-
 
 type Controller struct {
 	//db     		repository.DBInterface
-	user			auth.UserInterface
-	loginSession	cache.UserSessionInterface
-	order 			order.OrderInterface
-	balance 		balance.BalanceInterface
-	accrual 		repository.AccrualInterface
-	logger 			*log.Logger
+	user         auth.UserInterface
+	loginSession cache.UserSessionInterface
+	order        processing.OrderInterface
+	balance      withdraw.BalanceInterface
+	accrual      accrual.AccrualInterface
+	logger       *log.Logger
 	// as accrualService
 }
 
-
-func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order order.OrderInterface, balance balance.BalanceInterface, accrual repository.AccrualInterface, logger *log.Logger) *Controller {
+func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order processing.OrderInterface,
+	balance withdraw.BalanceInterface, accrual accrual.AccrualInterface, logger *log.Logger) *Controller {
 	c := &Controller{
-		user: 			user,
-		loginSession: 	loginSession,
-		order: 			order,
-		balance: 		balance,
-		accrual: 		accrual,
-		logger: 		logger,
+		user:         user,
+		loginSession: loginSession,
+		order:        order,
+		balance:      balance,
+		accrual:      accrual,
+		logger:       logger,
 	}
 	return c
 }
-
-// TODO: 04/08/22 Реализуем ручку для регимстрации пользователя: Register
 
 // Register регистрация пользователя
 // 			200 — пользователь успешно аутентифицирован;
@@ -97,7 +94,57 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddOrders загрузка пользователем номера заказа для расчёта
+// 			200 — номер заказа уже был загружен этим пользователем;
+//			202 — новый номер заказа принят в обработку;
+//			+ 400 — неверный формат запроса;
+//			+ 401 — пользователь не аутентифицирован;
+//			409 — номер заказа уже был загружен другим пользователем;
+//			422 — неверный формат номера заказа;
+//			500 — внутренняя ошибка сервера.
 func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
+	// Читаем и валидируем присланые данные
+	order := processing.Order{}
+	//order := pg.OrderDB{}
+
+	err400 := JSONError400(r, &order.Number, c.logger)
+	if err400 != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// Получаем пользователя по токену
+	token := r.Header.Get("Authorization")
+	userID, err := c.loginSession.GetUserIDByToken(token)
+	if err != nil { // Ошибка подключения к кешу
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if userID == 0 { // пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// Пробуем добавить заказ
+	ok200, ok202, err409, err422, err500 := c.order.Add(r.Context(), order.Number, userID)
+	if ok200 { // номер заказа уже был загружен этим пользователем;
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	if ok202 { // новый номер заказа принят в обработку;
+		w.WriteHeader(http.StatusAccepted)
+		return
+	}
+	if err409 != nil { // номер заказа уже был загружен другим пользователем;
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
+	if err422 != nil { // неверный формат номера заказа;
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+	if err500 != nil { // внутренняя ошибка сервера.
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 }
 

@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-
 type gzipBodyWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
@@ -83,4 +82,3 @@ func HTTPRequestDecompressor(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-

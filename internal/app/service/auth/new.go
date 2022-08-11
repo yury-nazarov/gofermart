@@ -5,23 +5,23 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"log"
 
-	"github.com/yury-nazarov/gofermart/internal/app/repository"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
 )
 
 type authLocalStruct struct {
-	db repository.DBInterface
+	db           pg.DBInterface
 	loginSession cache.UserSessionInterface
-	logger *log.Logger
+	logger       *log.Logger
 }
 
-func NewAuth(db repository.DBInterface, loginSession cache.UserSessionInterface, logger *log.Logger) UserInterface{
+func NewAuth(db pg.DBInterface, loginSession cache.UserSessionInterface, logger *log.Logger) authLocalStruct {
 	return authLocalStruct{
-		db: db,
+		db:           db,
 		loginSession: loginSession,
-		logger: logger,
+		logger:       logger,
 	}
 }
 
@@ -103,7 +103,7 @@ func (a authLocalStruct) IsUserSignIn(token string) (userID int, err500 error) {
 	// Ошибка работы с кешем
 	if err != nil {
 		a.logger.Printf("session storage have error: %s", err500)
-		return 0,  err500
+		return 0, err500
 	}
 	// Токен не найден
 	if userID == 0 {
@@ -111,7 +111,7 @@ func (a authLocalStruct) IsUserSignIn(token string) (userID int, err500 error) {
 		return 0, nil
 	}
 	// Токен найден
-	return userID,  nil
+	return userID, nil
 }
 
 // newToken создает токен

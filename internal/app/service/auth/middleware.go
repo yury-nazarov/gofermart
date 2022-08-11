@@ -39,6 +39,3 @@ func HTTPTokenExist(user UserInterface, logger *log.Logger) func(next http.Handl
 		return http.HandlerFunc(fn)
 	}
 }
-
-
-

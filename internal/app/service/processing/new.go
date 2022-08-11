@@ -77,6 +77,7 @@ func (o orderStruct) orderConvertData(orderList []pg.OrderDB) (clearOrderList []
 
 	log.Println("Order list", orderList)
 	for _, order := range orderList {
+
 		// TODO: По хорошему нужно из конфига, но этого нет в ТЗ :(
 		// Устанавливаем тайм зону
 		loc, err := time.LoadLocation("Europe/Moscow")
@@ -84,16 +85,21 @@ func (o orderStruct) orderConvertData(orderList []pg.OrderDB) (clearOrderList []
 			o.logger.Printf("load location error %s", err)
 		}
 
-		// Приводим дату и время к нужному формату + устанавливает тайм зону
+		// Из строки получаем объект Time в нужном формате и локейшене
 		newOrderTime, err := time.ParseInLocation(time.RFC3339, order.UploadedAt, loc)
 		if err != nil {
 			o.logger.Printf("error conver time %s", err)
 		}
-		// Изменяем поле и устанавливаем тайм зону
-		order.UploadedAt = newOrderTime.In(loc).String()
+
+		// Форматируем в: "2020-12-10T15:15:45+03:00"
+		order.UploadedAt = newOrderTime.In(loc).Format("2006-1-2T15:4:5-07:00")
+		o.logger.Printf("DEBUD TIME NEW: ", order.UploadedAt)
+
 		// TODO: Пока не переложил в новый слайс, новое значение не возвращалось. Разобратся в чем проблема!
 		// Добавляем результат в новый слайс
 		clearOrderList = append(clearOrderList, order)
+
+
 	}
 	return clearOrderList
 }

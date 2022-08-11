@@ -180,9 +180,6 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 
 	// Пробуем получить заказы пользователя
 	orders, err204, err500 := c.order.List(r.Context(), userID)
-	c.logger.Printf("got orders: %s", orders)
-	c.logger.Printf("got orders err204: %s", err204)
-	c.logger.Printf("got orders err500: %s", err500)
 	if err204 != nil {
 		w.WriteHeader(http.StatusNoContent)
 		return

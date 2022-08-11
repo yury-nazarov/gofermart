@@ -1,5 +1,7 @@
 package cache
 
+import "log"
+
 type userSessionStruct struct {
 	// map[Token]UserID
 	data map[string]int
@@ -21,6 +23,7 @@ func (l *userSessionStruct) Add(token string, userID int) error {
 // GetUserIDByToken - 	получить id пользователя по токену
 // 						error - пока заглушка, но если понадобится вынести во внешний кеш - то понадобится.
 func (l *userSessionStruct) GetUserIDByToken(token string) (userID int, err error) {
+	log.Println(l.data)
 	userID, ok := l.data[token]
 	if ok {
 		return userID, nil

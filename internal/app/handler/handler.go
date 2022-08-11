@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"log"
@@ -104,7 +105,6 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 //			500 — внутренняя ошибка сервера.
 func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	// Читаем и валидируем присланые данные
-	//order := processing.Order{}
 	order := pg.OrderDB{}
 
 	err400 := JSONError400(r, &order.Number, c.logger)
@@ -150,7 +150,61 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetOrders получение списка загруженных пользователем номеров заказов, статусов их обработки и информации о начислениях
+//			200 — успешная обработка запроса.
+// 			[
+//      		{
+//          		"number": "9278923470",
+//          		"status": "PROCESSED",
+//          		"accrual": 500,
+//         		 	"uploaded_at": "2020-12-10T15:15:45+03:00"
+//      		},
+//				...
+//			]
+// 			204 — нет данных для ответа.
+//			401 — пользователь не авторизован.
+//			500 — внутренняя ошибка сервера.
 func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
+	// Получаем пользователя по токену
+	token := r.Header.Get("Authorization")
+	userID, err := c.loginSession.GetUserIDByToken(token)
+	c.logger.Printf("got userID: %d, for token: %s", userID, token)
+	if err != nil { // Ошибка подключения к кешу
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// TODO: НУжна эта проверка?
+	if userID == 0 { // пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// Пробуем получить заказы пользователя
+	orders, err204, err500 := c.order.List(r.Context(), userID)
+	c.logger.Printf("got orders: %s", orders)
+	c.logger.Printf("got orders err204: %s", err204)
+	c.logger.Printf("got orders err500: %s", err500)
+	if err204 != nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if err500 != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Сериализуем JSON и отдаем пользователю
+	ordersJSON, err500 := json.Marshal(orders)
+	if err500 != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err500 = w.Write(ordersJSON)
+	if err500 != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 }
 

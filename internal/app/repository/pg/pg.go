@@ -127,7 +127,7 @@ func (p *pg) GetOrderByNumber(ctx context.Context, orderNum int) (o OrderDB, err
 	return o, nil
 }
 
-//
+// AddOrder -
 func (p *pg) AddOrder(ctx context.Context, orderNum int, userID int) (err500 error) {
 	_, err500 = p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
 												  VALUES ($1, $2, $3, $4)`, orderNum, userID, "NEW", 0)
@@ -136,4 +136,25 @@ func (p *pg) AddOrder(ctx context.Context, orderNum int, userID int) (err500 err
 		return err500
 	}
 	return nil
+}
+
+
+// ListOrders -
+func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error) {
+	rows, err := p.db.QueryContext(ctx, `SELECT number, status, accrual, uploaded_at 
+				 	   							FROM app_order WHERE user_id=$1`, userID)
+	defer rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+	o := OrderDB{}
+	for rows.Next() {
+		log.Println("Upload", &o.UploadedAt)
+		if err = rows.Scan(&o.Number, &o.Status, &o.Accrual, &o.UploadedAt); err != nil {
+			log.Println("error read string for order list")
+		}
+		orderList = append(orderList, o)
+	}
+	return orderList, nil
 }

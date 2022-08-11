@@ -5,12 +5,12 @@ import "context"
 // OrderDB структура модели заказа в БД.
 //		   Используется для описания таблицы в БД
 type OrderDB struct {
-	ID         int
-	UserID     int
-	Number     int     // Номер заказа
-	Status     string  // Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
-	Accrual    float64 // Сколько начислено баллов этому заказу
-	UploadedAt string  // Дата загрузки в формате RFC3339
+	ID         int		`json:"-"`
+	UserID     int		`json:"-"`
+	Number     int     	`json:"number"` 		// Номер заказа
+	Status     string  	`json:"status"`			// Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
+	Accrual    float64 	`json:"accrual"`		// Сколько начислено баллов этому заказу
+	UploadedAt string  	`json:"uploaded_at"`	// Дата загрузки в формате RFC3339
 }
 
 // DBInterface методы работы с релиационными БД
@@ -26,4 +26,6 @@ type DBInterface interface {
 	GetOrderByNumber(ctx context.Context, orderNum int) (order OrderDB, err error)
 	// AddOrder добавит новый номер заказа
 	AddOrder(ctx context.Context, orderNumber int, userID int) error
+	// ListOrders Получить спосок заказов пользователя
+	ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error)
 }

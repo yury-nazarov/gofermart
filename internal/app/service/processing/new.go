@@ -3,10 +3,10 @@ package processing
 import (
 	"context"
 	"fmt"
+	"github.com/theplant/luhn" //	алгоритм Луна для проверки корректности номера
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"log"
-
-	"github.com/theplant/luhn" //	алгоритм Луна для проверки корректности номера
+	"time"
 )
 
 func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
@@ -57,10 +57,43 @@ func (o orderStruct) Add(ctx context.Context, orderNum int, userID int) (ok200, 
 
 // List - список всех заказов пользователя
 func (o orderStruct) List(ctx context.Context, userID int) (orders []pg.OrderDB, err204, err500 error) {
-	orders = []pg.OrderDB{}
 	// Делаем запрос в БД
-	// 	204 - список пуст
-	// 	500 - ошибка выполнения запроса
-	//  orders - добавляем в список объекты для дальнейшей сериализации
+	orders, err := o.db.ListOrders(ctx, userID)
+	// 	err500 - ошибка выполнения запроса
+	if err != nil {
+		return nil, nil, fmt.Errorf("listOrder SQL Error: %s", err)
+	}
+	// 	err204 - список пуст
+	if len(orders) == 0 {
+		return nil, fmt.Errorf("empty order list"), nil
+	}
+	orders = o.orderConvertData(orders)
+	// ok200
 	return orders, nil, nil
+}
+
+// orderConvertData - конвертирует определенные поля заказа в нужный формат
+func (o orderStruct) orderConvertData(orderList []pg.OrderDB) (clearOrderList []pg.OrderDB) {
+
+	log.Println("Order list", orderList)
+	for _, order := range orderList {
+		// TODO: По хорошему нужно из конфига, но этого нет в ТЗ :(
+		// Устанавливаем тайм зону
+		loc, err := time.LoadLocation("Europe/Moscow")
+		if err != nil {
+			o.logger.Printf("load location error %s", err)
+		}
+
+		// Приводим дату и время к нужному формату + устанавливает тайм зону
+		newOrderTime, err := time.ParseInLocation(time.RFC3339, order.UploadedAt, loc)
+		if err != nil {
+			o.logger.Printf("error conver time %s", err)
+		}
+		// Изменяем поле и устанавливаем тайм зону
+		order.UploadedAt = newOrderTime.In(loc).String()
+		// TODO: Пока не переложил в новый слайс, новое значение не возвращалось. Разобратся в чем проблема!
+		// Добавляем результат в новый слайс
+		clearOrderList = append(clearOrderList, order)
+	}
+	return clearOrderList
 }

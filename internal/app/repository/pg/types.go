@@ -5,7 +5,7 @@ import "context"
 // OrderDB структура модели заказа в БД.
 //		   Используется для описания таблицы в БД
 type OrderDB struct {
-	Id         int
+	ID         int
 	UserID     int
 	Number     int     // Номер заказа
 	Status     string  // Статус обработки: NEW, PROCESSING, INVALID, PROCESSED

@@ -146,7 +146,14 @@ func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, e
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Println("defer rows.Close() error")
+		}
+	}()
+
 	o := OrderDB{}
 	for rows.Next() {
 		log.Println("Upload", &o.UploadedAt)

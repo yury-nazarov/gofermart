@@ -143,11 +143,10 @@ func (p *pg) AddOrder(ctx context.Context, orderNum int, userID int) (err500 err
 func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT number, status, accrual, uploaded_at 
 				 	   							FROM app_order WHERE user_id=$1`, userID)
-	defer rows.Close()
-
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	o := OrderDB{}
 	for rows.Next() {
 		log.Println("Upload", &o.UploadedAt)

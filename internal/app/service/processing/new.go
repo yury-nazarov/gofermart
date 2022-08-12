@@ -93,7 +93,7 @@ func (o orderStruct) orderConvertData(orderList []pg.OrderDB) (clearOrderList []
 
 		// Форматируем в: "2020-12-10T15:15:45+03:00"
 		// 				   2006-01-02T15:04:05Z07:00
-		order.UploadedAt = newOrderTime.In(loc).Format("2006-01-2T15:4:5Z07:00")
+		order.UploadedAt = newOrderTime.In(loc).Format("2006-01-2T15:04:05Z07:00")
 
 		// TODO: Пока не переложил в новый слайс, новое значение не возвращалось. Разобратся в чем проблема!
 		// Добавляем результат в новый слайс

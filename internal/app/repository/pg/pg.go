@@ -152,6 +152,10 @@ func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, e
 		if err != nil {
 			log.Println("defer rows.Close() error")
 		}
+		err = rows.Err()
+		if err != nil {
+			log.Println("defer rows.Err()  error")
+		}
 	}()
 
 	o := OrderDB{}

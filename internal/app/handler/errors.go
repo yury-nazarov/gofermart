@@ -24,3 +24,18 @@ func JSONError400(r *http.Request, anyData interface{}, logger *log.Logger) erro
 	}
 	return nil
 }
+
+
+func InputOrderError400(r *http.Request, logger *log.Logger) error {
+	bodyData, err := io.ReadAll(r.Body)
+	if err != nil || len(bodyData) == 0 {
+		logger.Printf("the HTTP Body parsing error: %s", err)
+		return err
+	}
+
+	if r.Header.Get("Content-Type") != "text/plain" {
+		logger.Printf("the HTTP Header Content-Type error: %s", err)
+		return err
+	}
+	return nil
+}

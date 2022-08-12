@@ -107,11 +107,13 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	// Читаем и валидируем присланые данные
 	order := pg.OrderDB{}
 
-	err400 := JSONError400(r, &order.Number, c.logger)
+	err400 := InputOrderError400(r, c.logger)
 	if err400 != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+
 	// Получаем пользователя по токену
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)

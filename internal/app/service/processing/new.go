@@ -6,6 +6,7 @@ import (
 	"github.com/theplant/luhn" //	алгоритм Луна для проверки корректности номера
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -17,10 +18,11 @@ func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
 }
 
 // Add - добавляет новый заказ
-func (o orderStruct) Add(ctx context.Context, orderNum int, userID int) (ok200, ok202 bool, err409, err422, err500 error) {
+func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err409, err422, err500 error) {
 	// err422 - Проверяем корректен ли номер заказа
 	// если номер заказа некорректный - отвечаем со статусом 422
-	if !luhn.Valid(orderNum) {
+	luhnCheck, err := strconv.Atoi(orderNum)
+	if !luhn.Valid(luhnCheck) || err != nil {
 		return false, false, nil, fmt.Errorf("wrong order number format"), nil
 	}
 
@@ -92,7 +94,6 @@ func (o orderStruct) orderConvertData(orderList []pg.OrderDB) (clearOrderList []
 		}
 
 		// Форматируем в: "2020-12-10T15:15:45+03:00"
-		// 				   2006-01-02T15:04:05Z07:00
 		order.UploadedAt = newOrderTime.In(loc).Format("2006-01-2T15:04:05Z07:00")
 
 		// TODO: Пока не переложил в новый слайс, новое значение не возвращалось. Разобратся в чем проблема!

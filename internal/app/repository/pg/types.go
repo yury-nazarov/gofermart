@@ -7,7 +7,7 @@ import "context"
 type OrderDB struct {
 	ID         int		`json:"-"`
 	UserID     int		`json:"-"`
-	Number     int     	`json:"number"` 		// Номер заказа
+	Number     string   `json:"number"` 		// Номер заказа
 	Status     string  	`json:"status"`			// Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
 	Accrual    float64 	`json:"accrual"`		// Сколько начислено баллов этому заказу
 	UploadedAt string  	`json:"uploaded_at"`	// Дата загрузки в формате RFC3339
@@ -23,9 +23,9 @@ type DBInterface interface {
 	// UserIsValid Проверяет на сколько валидны креды пользователя и вообще существует ли он
 	UserIsValid(ctx context.Context, login string, hashPwd string) (userID int, err error)
 	// GetOrderByNumber Вернет заказ по его номеру
-	GetOrderByNumber(ctx context.Context, orderNum int) (order OrderDB, err error)
+	GetOrderByNumber(ctx context.Context, orderNum string) (order OrderDB, err error)
 	// AddOrder добавит новый номер заказа
-	AddOrder(ctx context.Context, orderNumber int, userID int) error
+	AddOrder(ctx context.Context, orderNumber string, userID int) error
 	// ListOrders Получить спосок заказов пользователя
 	ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error)
 }

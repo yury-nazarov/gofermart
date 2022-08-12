@@ -44,7 +44,7 @@ func (p *pg) SchemeInit() error {
 
 	_, errOrder := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS app_order (
     										id serial PRIMARY KEY,
-    										number BIGINT NOT NULL,
+    										number VARCHAR (255) NOT NULL,
     										user_id INT NOT NULL,
     										status VARCHAR (255) NOT NULL,
     										accrual FLOAT,
@@ -115,7 +115,7 @@ func (p *pg) UserIsValid(ctx context.Context, login string, hashPwd string) (use
 }
 
 // GetOrderByNumber Вернет заказ по его номеру
-func (p *pg) GetOrderByNumber(ctx context.Context, orderNum int) (o OrderDB, err error) {
+func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o OrderDB, err error) {
 	// Если записи нет то вернется {0 0 0  0 }
 	row := p.db.QueryRowContext(ctx, `SELECT id, user_id, number, status, accrual, uploaded_at 
 										   FROM app_order 
@@ -128,7 +128,7 @@ func (p *pg) GetOrderByNumber(ctx context.Context, orderNum int) (o OrderDB, err
 }
 
 // AddOrder -
-func (p *pg) AddOrder(ctx context.Context, orderNum int, userID int) (err500 error) {
+func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 error) {
 	_, err500 = p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
 												  VALUES ($1, $2, $3, $4)`, orderNum, userID, "NEW", 0)
 	if err500 != nil {

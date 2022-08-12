@@ -26,7 +26,6 @@ func HTTPTokenExist(user UserInterface, logger *log.Logger) func(next http.Handl
 			// Что то пошло не так с кешем
 			if err500 != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				return
 			}
 
 			// Токен есть в кеше
@@ -36,7 +35,6 @@ func HTTPTokenExist(user UserInterface, logger *log.Logger) func(next http.Handl
 
 			// Остальные кейсы считаем пользователя не авторизованым
 			w.WriteHeader(http.StatusUnauthorized)
-			return
 		}
 		return http.HandlerFunc(fn)
 	}

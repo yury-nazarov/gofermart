@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
+
+	"github.com/theplant/luhn"
 )
 
 func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
@@ -62,13 +65,13 @@ func correctOrderNumber(orderNum string) error {
 	if len(orderNum) == 0 {
 		return fmt.Errorf("order num is empty")
 	}
-	//luhnCheck, err := strconv.Atoi(orderNum)
-	//if err != nil {
-	//	return fmt.Errorf("strconv.Atoi err, %s", err)
-	//}
-	//if !luhn.Valid(luhnCheck) {
-	//	return fmt.Errorf("wrong luhn order number format")
-	//}
+	luhnCheck, err := strconv.Atoi(orderNum)
+	if err != nil {
+		return fmt.Errorf("strconv.Atoi err, %s", err)
+	}
+	if !luhn.Valid(luhnCheck) {
+		return fmt.Errorf("wrong luhn order number format")
+	}
 	return nil
 }
 

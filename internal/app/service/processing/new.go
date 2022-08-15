@@ -3,11 +3,12 @@ package processing
 import (
 	"context"
 	"fmt"
-	"github.com/theplant/luhn" //	алгоритм Луна для проверки корректности номера
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/theplant/luhn" //	алгоритм Луна для проверки корректности номера
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 )
 
 func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
@@ -22,8 +23,11 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	// err422 - Проверяем корректен ли номер заказа
 	// если номер заказа некорректный - отвечаем со статусом 422
 	luhnCheck, err := strconv.Atoi(orderNum)
-	if !luhn.Valid(luhnCheck) || err != nil {
-		return false, false, nil, fmt.Errorf("wrong order number format"), nil
+	if err != nil {
+		return false, false, nil, fmt.Errorf("strconv.Atoi err, %s", err), nil
+	}
+	if !luhn.Valid(luhnCheck) {
+		return false, false, nil, fmt.Errorf("wrong luhn order number format"), nil
 	}
 
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID

@@ -109,6 +109,7 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 
 	err400 := InputOrderError400(r, c.logger)
 	if err400 != nil {
+		c.logger.Printf("handlers/AddOrders, err400: input order error\n")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -118,10 +119,12 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
 	if err != nil { // Ошибка подключения к кешу
+		c.logger.Printf("handlers/AddOrders, userID: %d can't connection to cache\n", userID)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if userID == 0 { // пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+		c.logger.Printf("handlers/AddOrders, userID: %d not authorisation\n", userID)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -129,22 +132,27 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	// Пробуем добавить заказ
 	ok200, ok202, err409, err422, err500 := c.order.Add(r.Context(), order.Number, userID)
 	if ok200 { // номер заказа уже был загружен этим пользователем;
+		c.logger.Printf("handlers/AddOrders, ok200: Order %s for userID %d is exist\n", order.Number, userID)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 	if ok202 { // новый номер заказа принят в обработку;
+		c.logger.Printf("handlers/AddOrders, ok202: Order %s for userID %d accepted and will be processing\n", order.Number, userID)
 		w.WriteHeader(http.StatusAccepted)
 		return
 	}
 	if err409 != nil { // номер заказа уже был загружен другим пользователем;
+		c.logger.Printf("handlers/AddOrders, err409: %s\n", err409)
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
 	if err422 != nil { // неверный формат номера заказа;
+		c.logger.Printf("handlers/AddOrders, err422: %s\n", err422)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 	if err500 != nil { // внутренняя ошибка сервера.
+		c.logger.Printf("handlers/AddOrders, err500: %s\n", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -169,13 +177,16 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	// Получаем пользователя по токену
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
-	c.logger.Printf("got userID: %d, for token: %s", userID, token)
 	if err != nil { // Ошибка подключения к кешу
+		c.logger.Printf("handlers/GetOrders, userID: %d can't connection to cache\n", userID)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	c.logger.Printf("handlers/GetOrders, got userID: %d, for token: %s", userID, token)
+
 	// TODO: НУжна эта проверка?
 	if userID == 0 { // пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+		c.logger.Printf("handlers/GetOrders, userID: %d not authorisation\n", userID)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -183,10 +194,12 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	// Пробуем получить заказы пользователя
 	orders, err204, err500 := c.order.List(r.Context(), userID)
 	if err204 != nil {
+		c.logger.Printf("handlers/GetOrders,err204:  userID: %d. Order list is empty\n", userID)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	if err500 != nil {
+		c.logger.Printf("handlers/GetOrders, from c.order.List got err500: %s\n", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -194,6 +207,7 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	// Сериализуем JSON и отдаем пользователю
 	ordersJSON, err500 := json.Marshal(orders)
 	if err500 != nil {
+		c.logger.Printf("handlers/GetOrders, json marshal return err500: %s\n", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -201,6 +215,7 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err500 = w.Write(ordersJSON)
 	if err500 != nil {
+		c.logger.Printf("handlers/GetOrders, w.Write return err500: %s\n", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

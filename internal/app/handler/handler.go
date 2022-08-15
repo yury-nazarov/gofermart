@@ -2,11 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
+	"io"
 	"log"
 	"net/http"
 
+	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
@@ -104,15 +104,14 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 //			422 — неверный формат номера заказа;
 //			500 — внутренняя ошибка сервера.
 func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
-	// Читаем и валидируем присланые данные
-	order := pg.OrderDB{}
-
-	err400 := InputOrderError400(r, c.logger)
+	// Читаем присланые данные из HTTP приводим к строке номер заказа
+	bodyData, err400 := io.ReadAll(r.Body)
 	if err400 != nil {
-		c.logger.Printf("handlers/AddOrders, err400: input order error\n")
+		c.logger.Printf("handlers/AddOrders, err400: HTTP Body parsing error: %s", err400)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	order := string(bodyData)
 
 
 	// Получаем пользователя по токену
@@ -123,35 +122,42 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if userID == 0 { // пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+	// пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+	if userID == 0 {
 		c.logger.Printf("handlers/AddOrders, userID: %d not authorisation\n", userID)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	// Пробуем добавить заказ
-	ok200, ok202, err409, err422, err500 := c.order.Add(r.Context(), order.Number, userID)
-	if ok200 { // номер заказа уже был загружен этим пользователем;
-		c.logger.Printf("handlers/AddOrders, ok200: Order %s for userID %d is exist\n", order.Number, userID)
+	ok200, ok202, err409, err422, err500 := c.order.Add(r.Context(), order, userID)
+	// номер заказа уже был загружен этим пользователем;
+	if ok200 {
+		c.logger.Printf("handlers/AddOrders, ok200: Order %s for userID %d is exist\n", order, userID)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	if ok202 { // новый номер заказа принят в обработку;
-		c.logger.Printf("handlers/AddOrders, ok202: Order %s for userID %d accepted and will be processing\n", order.Number, userID)
+	// новый номер заказа принят в обработку;
+	if ok202 {
+		c.logger.Printf("handlers/AddOrders, ok202: Order %s for userID %d accepted and will be processing\n", order, userID)
 		w.WriteHeader(http.StatusAccepted)
 		return
 	}
-	if err409 != nil { // номер заказа уже был загружен другим пользователем;
+	// номер заказа уже был загружен другим пользователем;
+	if err409 != nil {
 		c.logger.Printf("handlers/AddOrders, err409: %s\n", err409)
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
-	if err422 != nil { // неверный формат номера заказа;
+	c.logger.Printf("DEBUG orderNum: '%x'\n", order)
+	// неверный формат номера заказа
+	if err422 != nil {
 		c.logger.Printf("handlers/AddOrders, err422: %s\n", err422)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
-	if err500 != nil { // внутренняя ошибка сервера.
+	// внутренняя ошибка сервера
+	if err500 != nil {
 		c.logger.Printf("handlers/AddOrders, err500: %s\n", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
-	"github.com/theplant/luhn" //	алгоритм Луна для проверки корректности номера
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 )
 
@@ -24,7 +22,7 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	// если номер заказа некорректный - отвечаем со статусом 422
 	err422 = correctOrderNumber(orderNum)
 	if err422 != nil {
-		return false, false, nil, fmt.Errorf("correctOrderNumber is wrong: %s", err422), nil
+		return false, false, nil, fmt.Errorf("orderNum: '%s', correctOrderNumber is wrong: %s", orderNum, err422), nil
 	}
 
 
@@ -64,13 +62,13 @@ func correctOrderNumber(orderNum string) error {
 	if len(orderNum) == 0 {
 		return fmt.Errorf("order num is empty")
 	}
-	luhnCheck, err := strconv.Atoi(orderNum)
-	if err != nil {
-		return fmt.Errorf("strconv.Atoi err, %s", err)
-	}
-	if !luhn.Valid(luhnCheck) {
-		return fmt.Errorf("wrong luhn order number format")
-	}
+	//luhnCheck, err := strconv.Atoi(orderNum)
+	//if err != nil {
+	//	return fmt.Errorf("strconv.Atoi err, %s", err)
+	//}
+	//if !luhn.Valid(luhnCheck) {
+	//	return fmt.Errorf("wrong luhn order number format")
+	//}
 	return nil
 }
 

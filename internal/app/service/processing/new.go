@@ -22,6 +22,9 @@ func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
 func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err409, err422, err500 error) {
 	// err422 - Проверяем корректен ли номер заказа
 	// если номер заказа некорректный - отвечаем со статусом 422
+	if len(orderNum) == 0 {
+		return false, false, nil, fmt.Errorf("order num is empty"), nil
+	}
 	luhnCheck, err := strconv.Atoi(orderNum)
 	if err != nil {
 		return false, false, nil, fmt.Errorf("strconv.Atoi err, %s", err), nil

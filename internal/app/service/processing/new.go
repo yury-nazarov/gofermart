@@ -22,19 +22,13 @@ func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
 func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err409, err422, err500 error) {
 	// err422 - Проверяем корректен ли номер заказа
 	// если номер заказа некорректный - отвечаем со статусом 422
-	if len(orderNum) == 0 {
-		return false, false, nil, fmt.Errorf("order num is empty"), nil
+	err422 = correctOrderNumber(orderNum)
+	if err422 != nil {
+		return false, false, nil, fmt.Errorf("correctOrderNumber is wrong: %s", err422), nil
 	}
-	luhnCheck, err := strconv.Atoi(orderNum)
-	if err != nil {
-		return false, false, nil, fmt.Errorf("strconv.Atoi err, %s", err), nil
-	}
-	if !luhn.Valid(luhnCheck) {
-		return false, false, nil, fmt.Errorf("wrong luhn order number format"), nil
-	}
+
 
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID
-
 	order, err := o.db.GetOrderByNumber(ctx, orderNum)
 
 	// Если произошла ошибка, то такого заказа нет и его можно создать
@@ -62,6 +56,21 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 
 	log.Printf("create order somfing wrong")
 	return false, false, nil, nil, fmt.Errorf("create order somfing wrong")
+}
+
+// correctOrderNumber - проверяет корректность номера заказа
+// 						Длина больше 0 и коректен по луну
+func correctOrderNumber(orderNum string) error {
+	if len(orderNum) == 0 {
+		return fmt.Errorf("order num is empty")
+	}
+	luhnCheck, err := strconv.Atoi(orderNum)
+	if err != nil {
+		return fmt.Errorf("strconv.Atoi err, %s", err)
+	}
+	if !luhn.Valid(luhnCheck) {
+		return fmt.Errorf("wrong luhn order number format")
+	}
 }
 
 // List - список всех заказов пользователя

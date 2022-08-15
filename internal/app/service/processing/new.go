@@ -71,6 +71,7 @@ func correctOrderNumber(orderNum string) error {
 	if !luhn.Valid(luhnCheck) {
 		return fmt.Errorf("wrong luhn order number format")
 	}
+	return nil
 }
 
 // List - список всех заказов пользователя

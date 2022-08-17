@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/httpClient"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"github.com/yury-nazarov/gofermart/internal/app/service/withdraw"
@@ -18,14 +18,14 @@ type Controller struct {
 	user         auth.UserInterface
 	loginSession cache.UserSessionInterface
 	order        processing.OrderInterface
-	balance      withdraw.BalanceInterface
-	accrual      accrual.AccrualInterface
-	logger       *log.Logger
+	balance withdraw.BalanceInterface
+	accrual httpClient.AccrualInterface
+	logger  *log.Logger
 	// as accrualService
 }
 
 func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order processing.OrderInterface,
-	balance withdraw.BalanceInterface, accrual accrual.AccrualInterface, logger *log.Logger) *Controller {
+	balance withdraw.BalanceInterface, accrual httpClient.AccrualInterface, logger *log.Logger) *Controller {
 	c := &Controller{
 		user:         user,
 		loginSession: loginSession,
@@ -149,7 +149,7 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
-	c.logger.Printf("DEBUG orderNum: '%x'\n", order)
+	c.logger.Printf("DEBUG orderNum: '%s'\n", order)
 	// неверный формат номера заказа
 	if err422 != nil {
 		c.logger.Printf("handlers/AddOrders, err422: %s\n", err422)

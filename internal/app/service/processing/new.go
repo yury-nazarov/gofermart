@@ -38,7 +38,7 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 		err500 = o.db.AddOrder(ctx, orderNum, userID)
 		if err500 != nil {
 			// err500
-			return false, false, nil, nil, fmt.Errorf("add order errer %s", err500)
+			return false, false, nil, nil, fmt.Errorf("add order error %s", err500)
 		}
 		// ok202 - заказ принят в обработку
 		return false, true, nil, nil, nil

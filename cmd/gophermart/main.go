@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/httpClient"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"log"
 	"net/http"
@@ -35,8 +35,9 @@ func main() {
 	// Регистрация и авторизация пользователя
 	user := auth.NewAuth(db, loginSession, logger)
 
-	// Запускаем по тикеру горутины которые будут периодически опрашивать accrualServer и обновлять значение в БД
-	accrual := accrual.New(accrualAddress, db, logger)
+	// Запускаем горутины в бусконечном цикле которые будут периодически опрашивать accrualServer и обновлять значение в БД
+	accrualClient := httpClient.NewAccrual(accrualAddress, db, logger)
+	go accrualClient.Init()
 
 	// Бизнес логика работы с заказами
 	order := processing.NewOrder(db, logger)
@@ -45,7 +46,7 @@ func main() {
 	balance := withdraw.NewBalance(db, logger)
 
 	// Инициируем объект для доступа к хендлерам
-	c := handler.New(user, loginSession, order, balance, accrual, logger)
+	c := handler.New(user, loginSession, order, balance, accrualClient, logger)
 
 	// инициируем роутер
 	router := handler.NewRouter(c, user, logger)

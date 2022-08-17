@@ -35,23 +35,48 @@ func (p *pg) SchemeInit() error {
 
 	// Таблица Users - содержит логин пользователя и хеш пароля
 	_, errUser := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS app_user (
-    							id serial PRIMARY KEY,
-    							login VARCHAR (255) NOT NULL,
-    							password VARCHAR (255) NOT NULL)`)
+											id serial 			PRIMARY KEY,
+											login 				VARCHAR (255) NOT NULL,
+											password 			VARCHAR (255) NOT NULL,
+    										accrual_current 	FLOAT default 0,
+    										accrual_total 		FLOAT default 0
+											)`)
 	if errUser != nil {
-		return fmt.Errorf("create table `user`: %w", errUser)
+		return fmt.Errorf("create table `app_user`: %s", errUser)
 	}
 
 	_, errOrder := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS app_order (
-    										id serial PRIMARY KEY,
-    										number VARCHAR (255) NOT NULL,
-    										user_id INT NOT NULL,
-    										status VARCHAR (255) NOT NULL,
-    										accrual FLOAT,
-    										uploaded_at TIMESTAMP default NOW())`)
+    										id serial 	PRIMARY KEY,
+    										number 		VARCHAR (255) NOT NULL,
+    										user_id 	INT NOT NULL,
+    										status 		VARCHAR (255) NOT NULL,
+    										accrual 	FLOAT,
+    										uploaded_at TIMESTAMP default NOW()
+    										)`)
 	if errOrder != nil {
-		return fmt.Errorf("create table `order`: %w", errOrder)
+		return fmt.Errorf("create table `app_order`: %s", errOrder)
 	}
+
+	//_, errAccrual := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS accrual (
+    //											id serial 		PRIMARY KEY,
+    //											current_point 	FLOAT,
+    //											total_point 	FLOAT,
+    //                               			user_id 		INT NOT NULL
+	//											)`)
+	//if errAccrual != nil {
+	//	return fmt.Errorf("create table `accrual`: %w", errAccrual)
+	//}
+
+	_, errWithdrawList := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS withdraw_list (
+    											id serial 		PRIMARY KEY,
+    											order_num	 	INT NOT NULL,
+    											sum_points	 	FLOAT,
+                                   				processed_at 	TIMESTAMP default NOW()
+												)`)
+	if errWithdrawList != nil {
+		return fmt.Errorf("create table `withdraw_list`: %w", errWithdrawList)
+	}
+
 	return nil
 }
 
@@ -130,9 +155,17 @@ func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o OrderDB, 
 // AddOrder -
 func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 error) {
 	_, err500 = p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
-												  VALUES ($1, $2, $3, $4)`, orderNum, userID, "NEW", 0)
+											 VALUES ($1, $2, $3, $4)`, orderNum, userID, "NEW", 0)
 	if err500 != nil {
-		log.Println(err500)
+		return err500
+	}
+	return nil
+}
+
+func (p *pg) AddAccrual(ctx context.Context, userID int) error {
+	_, err500 := p.db.ExecContext(ctx, `INSERT INTO accrual (current_point, total_point, user_id) 
+											  VALUES (0, 0, $1)`, userID)
+	if err500 != nil {
 		return err500
 	}
 	return nil
@@ -167,4 +200,71 @@ func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, e
 		orderList = append(orderList, o)
 	}
 	return orderList, nil
+}
+
+// TODO: Errors
+func (p *pg) GetOrders() ([]string, error) {
+	var orderList []string
+	rows, err := p.db.Query(`SELECT number FROM app_order WHERE status='NEW' OR status='PROCESSING'`)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			//log.Println("")
+		}
+		err = rows.Err()
+		if err != nil {
+			//
+		}
+	}()
+	for rows.Next(){
+		var order string
+		if err = rows.Scan(&order); err != nil {
+			//
+		}
+		orderList = append(orderList, order)
+	}
+	return orderList, nil
+}
+
+
+func (p *pg) OrderStatusUpdate(ctx context.Context, orderNum string, status string) error {
+	_, err500 := p.db.ExecContext(ctx, `UPDATE app_order SET status=$1 WHERE number=$2`, status, orderNum)
+	if err500 != nil {
+		return err500
+	}
+	return nil
+}
+
+
+func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, totalPoint float64, err error) {
+
+	err = p.db.QueryRowContext(ctx, `SELECT accrual_current, accrual_total FROM app_user
+											WHERE id=$1 LIMIT 1`, userID).Scan(&currentPoint, &totalPoint)
+	if err != nil {
+		return 0, 0,  err
+	}
+	return currentPoint, totalPoint, nil
+}
+
+func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error {
+	_, err := p.db.ExecContext(ctx, `UPDATE app_user 
+										   SET accrual_current=$1, accrual_total=$2 
+										   WHERE id=$3`, currentPoint, totalPoint, userID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error {
+	_, err := p.db.ExecContext(ctx, `UPDATE app_order SET accrual=$1
+										   WHERE number=$2`, accrual, orderNumber)
+	if err != nil {
+		return err
+	}
+	return nil
 }

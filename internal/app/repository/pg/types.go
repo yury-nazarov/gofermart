@@ -26,6 +26,18 @@ type DBInterface interface {
 	GetOrderByNumber(ctx context.Context, orderNum string) (order OrderDB, err error)
 	// AddOrder добавит новый номер заказа
 	AddOrder(ctx context.Context, orderNumber string, userID int) error
+	// AddAccrual добавляет запись в таблицу accrual
+	AddAccrual(ctx context.Context, userID int) error
 	// ListOrders Получить спосок заказов пользователя
 	ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error)
+	// GetOrders получает все заказы со статусом NEW, PROCESSING
+	GetOrders() ([]string, error)
+	// OrderStatusUpdate обновить статус заказа
+	OrderStatusUpdate(ctx context.Context, orderNum string, status string) error
+	//GetAccrual получить текущие значения таблицы: app_user.accrual_current, app_user.accrual_total
+	GetAccrual(ctx context.Context, userID int) (currentPoint float64, totalPoint float64, err error)
+	// UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
+	UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error
+	// UpdateOrderAccrual - обновляет значения для app_order.accrual
+	UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error
 }

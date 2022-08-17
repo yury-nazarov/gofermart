@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/httpClient"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"io/ioutil"
 	"log"
@@ -54,7 +54,7 @@ func NewTestServer() *httptest.Server {
 	user := auth.NewAuth(db, loginSession, logger)
 
 	// Запускаем по тикеру горутины которые будут периодически опрашивать accrualServer и обновлять значение в БД
-	accrual := accrual.New(accrualAddress, db, logger)
+	accrual := httpClient.NewAccrual(accrualAddress, db, logger)
 
 	// Бизнес логика работы с заказами
 	order := processing.NewOrder(db, logger)

@@ -29,11 +29,13 @@ func (a *accrualClientStruct) Init() {
 	//	уточняем их состояние в accrual
 	for {
 		// Получаем все со статусом NEW, PROCESSING из БД
-		// TODO: DEBUG
-		//orderList := a.getDataFromDB()
-		//a.logger.Printf("HTTP Client: get Orders from DB: %s", orderList)
-		//for _, order := range orderList {
-		//	//a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
+
+		orderList := a.getDataFromDB()
+		a.logger.Printf("HTTP Client: get Orders from DB: %s", orderList)
+		for _, order := range orderList {
+			a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
+
+			// TODO: DEBUG
 		//	// Выполняем запрос в систему рассчета баллов
 		//	orderNum, status, accrual := a.getOrder(order)
 		//
@@ -45,7 +47,7 @@ func (a *accrualClientStruct) Init() {
 		//			a.logger.Printf("updateAccrual have error execute: %s", err)
 		//		}
 		//	}
-		//}
+		}
 		// TODO: END DEBUG
 		a.logger.Println("accrual.Init()----------------------------------")
 		time.Sleep(5000 * time.Millisecond)

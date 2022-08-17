@@ -270,3 +270,9 @@ func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumbe
 	}
 	return nil
 }
+
+
+//func (p *pg) GetUserBalance(ctx context.Context, userID int) (current float64, total float64, err error) {
+//	_, err := p.db.QueryRowContext(ctx, `SELECT `)
+//	return 0, 0, nil
+//}

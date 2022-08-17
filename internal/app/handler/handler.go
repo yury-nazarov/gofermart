@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -229,7 +230,48 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetBalance получение текущего баланса счёта баллов лояльности пользователя
+// 			200 — успешная обработка запроса.
+// 			+ 401 — пользователь не авторизован.
+//			500 — внутренняя ошибка сервера.
 func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
+	// Получаем пользователя по токену
+	token := r.Header.Get("Authorization")
+	userID, err := c.loginSession.GetUserIDByToken(token)
+	if err != nil {
+		errMsg := fmt.Errorf("can't connection to cache of user session: err %s", err)
+		c.logger.Print(errMsg)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Получаем текущий баланс
+	balance, err := c.balance.CurrentBalance(r.Context(), userID)
+	if err != nil {
+		errMsg := fmt.Errorf("can't get current ballance. err: %s", err)
+		c.logger.Print(errMsg)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Преобразуем в JSON
+	jsonBalance, err := json.Marshal(balance)
+	if err != nil {
+		errMsg := fmt.Errorf("can't convert ballance struct to JSON. error: %s", err)
+		c.logger.Print(errMsg)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем ответ клиенту
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(jsonBalance)
+	if err != nil {
+		errMsg := fmt.Errorf("can't send json bites to client. error: %s", err)
+		c.logger.Print(errMsg)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 }
 

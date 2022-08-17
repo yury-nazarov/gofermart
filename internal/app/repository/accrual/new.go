@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
@@ -40,7 +41,7 @@ func (a *accrualClientStruct) Init() {
 				a.logger.Printf("can't connect to accrual system. err: %s", err)
 				continue
 			}
-			a.logger.Printf("orderNum: %s, status: %s, accrual", orderNum, status, accrual)
+			a.logger.Printf("orderNum: %s, status: %s, accrual: %f", orderNum, status, accrual)
 
 			//// Обновляем результат в БД
 			//if len(orderNum) != 0 {
@@ -60,15 +61,18 @@ func (a *accrualClientStruct) Init() {
 
 // getOrder получает данные из accrual системы
 func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error){
-	//endpoint := fmt.Sprintf("http://%s/api/orders/%s", a.accrualAddress, orderNum)
-	//a.logger.Printf("HTTP Client: HTTP GET to endpoint: %s", endpoint)
-	//resp, err := http.Get(endpoint)
-	//if err != nil {
-	//	a.logger.Printf("connection to accrual server error: %s", err)
-	//}
-	//defer resp.Body.Close()
+	endpoint := fmt.Sprintf("http://%s/api/orders/%s", a.accrualAddress, orderNum)
+	a.logger.Printf("HTTP Client: HTTP GET to endpoint: %s", endpoint)
+	resp, err := http.Get(endpoint)
+	if err != nil {
+		errMsg := fmt.Errorf("can't connection to accrual server: %s", a.accrualAddress)
+		a.logger.Print(errMsg)
+		return "", "", 0, errMsg
+	}
+	defer resp.Body.Close()
 
-	//a.logger.Printf("HTTP Client: response status code: %d", resp.StatusCode)
+	a.logger.Printf("HTTP Client: response status code: %d", resp.StatusCode)
+	//a.logger.Printf("HTTP Client: response body: %d", resp.Body)
 	//if resp.StatusCode == 200 {
 	//	payload, err := io.ReadAll(resp.Body)
 	//	if err != nil {

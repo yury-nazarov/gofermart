@@ -42,10 +42,10 @@ func (a *accrualClientStruct) Init() {
 			// Обновляем результат в БД
 			if len(orderNum) != 0 {
 				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
-				err := a.updateAccrual(orderNum, status, accrual)
-				if err != nil {
-					a.logger.Printf("updateAccrual have error execute: %s", err)
-				}
+				//err := a.updateAccrual(orderNum, status, accrual)
+				//if err != nil {
+				//	a.logger.Printf("updateAccrual have error execute: %s", err)
+				//}
 			}
 		}
 		// TODO: END DEBUG

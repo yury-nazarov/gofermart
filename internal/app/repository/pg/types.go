@@ -40,6 +40,8 @@ type DBInterface interface {
 	UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error
 	// UpdateOrderAccrual - обновляет значения для app_order.accrual
 	UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error
-	//// GetUserBalance получить текущий счет пользователя
-	//GetUserBalance(ctx context.Context, userID int) (current float64, total float64, err error)
+	// GetOrderByUserID проверяем налицие заказа для конкретного пользователя
+	GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error)
+	// AddToWithdrawList - добавляет новую запись в журнал
+	AddToWithdrawList(ctx context.Context, orderNum string, sum float64) error
 }

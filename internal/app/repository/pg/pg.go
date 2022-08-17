@@ -57,19 +57,10 @@ func (p *pg) SchemeInit() error {
 		return fmt.Errorf("create table `app_order`: %s", errOrder)
 	}
 
-	//_, errAccrual := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS accrual (
-    //											id serial 		PRIMARY KEY,
-    //											current_point 	FLOAT,
-    //											total_point 	FLOAT,
-    //                               			user_id 		INT NOT NULL
-	//											)`)
-	//if errAccrual != nil {
-	//	return fmt.Errorf("create table `accrual`: %w", errAccrual)
-	//}
 
 	_, errWithdrawList := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS withdraw_list (
     											id serial 		PRIMARY KEY,
-    											order_num	 	INT NOT NULL,
+    											order_num	 	VARCHAR (255) NOT NULL,
     											sum_points	 	FLOAT,
                                    				processed_at 	TIMESTAMP default NOW()
 												)`)
@@ -232,7 +223,6 @@ func (p *pg) GetOrders() ([]string, error) {
 	return orderList, nil
 }
 
-
 func (p *pg) OrderStatusUpdate(ctx context.Context, orderNum string, status string) error {
 	_, err500 := p.db.ExecContext(ctx, `UPDATE app_order SET status=$1 WHERE number=$2`, status, orderNum)
 	if err500 != nil {
@@ -240,7 +230,6 @@ func (p *pg) OrderStatusUpdate(ctx context.Context, orderNum string, status stri
 	}
 	return nil
 }
-
 
 func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, totalPoint float64, err error) {
 
@@ -271,8 +260,24 @@ func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumbe
 	return nil
 }
 
+func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error) {
+	var status string
 
-//func (p *pg) GetUserBalance(ctx context.Context, userID int) (current float64, total float64, err error) {
-//	_, err := p.db.QueryRowContext(ctx, `SELECT `)
-//	return 0, 0, nil
-//}
+	err := p.db.QueryRowContext(ctx, `SELECT status FROM app_order 
+											WHERE number=$1 
+											AND user_id=$2 LIMIT 1`, orderNum, userID).Scan(&status)
+	if err != nil {
+		return "", err
+	}
+	return status, nil
+}
+
+
+func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64) error {
+	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points) 
+											VALUES ($1, $2)`, orderNum, sumPoints)
+	if err != nil {
+		return err
+	}
+	return nil
+}

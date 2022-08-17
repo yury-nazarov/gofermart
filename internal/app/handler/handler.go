@@ -276,8 +276,59 @@ func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 }
 
 // Withdraw запрос на списание баллов с накопительного счёта в счёт оплаты нового заказа
+// 			200 — успешная обработка запроса;
+//			401 — пользователь не авторизован;
+//			402 — на счету недостаточно средств;
+//			422 — неверный номер заказа;
+//			500 — внутренняя ошибка сервера.
+//          ------------------------------------
+// 			POST /api/user/balance/withdraw HTTP/1.1
+//			Content-Type: application/json
+//			{
+//    			"order": "2377225624",
+//    			"sum": 751
+//			}
 func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
+	// Читаем присланые данные
+	withdraw := withdraw.Withdraw{}
+	err400 := JSONError400(r, &withdraw, c.logger)
+	if err400 != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	c.logger.Printf("success get withdraw info. orderNum: %s, sum: %f", withdraw.Order, withdraw.Sum)
 
+	// Получить из заголовка token и преобразовать его в userID
+	token := r.Header.Get("Authorization")
+	userID, err := c.loginSession.GetUserIDByToken(token)
+	if err != nil {
+		errMsg := fmt.Errorf("can't connection to cache of user session: err %s", err)
+		c.logger.Print(errMsg)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	c.logger.Printf("success get userID from user session: %d", userID)
+
+	// Выводим средства со счета пользователя: app_user.current - sum
+	err402, err422, err500 := c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
+	if err402 != nil {
+		c.logger.Printf("can't calculate withdraw balance: err %s", err402)
+		w.WriteHeader(http.StatusPaymentRequired)
+		return
+	}
+	if err422 != nil {
+		c.logger.Printf("can't calculate withdraw balance: err %s", err422)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+	if err500 != nil {
+		c.logger.Printf("can't calculate withdraw balance: err %s", err500)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	c.logger.Printf("success calculate withdraw balance for userID: %d", userID)
+	w.WriteHeader(http.StatusOK)
+	return
 }
 
 // Withdrawals получение информации о выводе средств с накопительного счёта пользователем

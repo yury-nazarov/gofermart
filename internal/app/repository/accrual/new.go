@@ -37,16 +37,21 @@ func (a *accrualClientStruct) Init() {
 
 			// TODO: DEBUG
 			// Выполняем запрос в систему рассчета баллов
-			orderNum, status, accrual := a.getOrder(order)
-
-			// Обновляем результат в БД
-			if len(orderNum) != 0 {
-				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
-				//err := a.updateAccrual(orderNum, status, accrual)
-				//if err != nil {
-				//	a.logger.Printf("updateAccrual have error execute: %s", err)
-				//}
+			orderNum, status, accrual, err := a.getOrder(order)
+			if err != nil {
+				a.logger.Printf("can't connect to accrual system. err: %s", err)
+				continue
 			}
+			a.logger.Printf("orderNum: %s, status: %s, accrual", orderNum, status, accrual)
+
+			//// Обновляем результат в БД
+			//if len(orderNum) != 0 {
+			//	a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
+			//	err := a.updateAccrual(orderNum, status, accrual)
+			//	if err != nil {
+			//		a.logger.Printf("updateAccrual have error execute: %s", err)
+			//	}
+			//}
 		}
 		// TODO: END DEBUG
 		a.logger.Println("accrual.Init()----------------------------------")
@@ -56,7 +61,7 @@ func (a *accrualClientStruct) Init() {
 
 
 // getOrder получает данные из accrual системы
-func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64){
+func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error){
 	endpoint := fmt.Sprintf("http://%s/api/orders/%s", a.accrualAddress, orderNum)
 	a.logger.Printf("HTTP Client: HTTP GET to endpoint: %s", endpoint)
 	resp, err := http.Get(endpoint)

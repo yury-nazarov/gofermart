@@ -10,7 +10,7 @@ import (
 // AccrualInterface методы работы с системой рассчета баллов
 type AccrualInterface interface {
 	Init()
-	getOrder(orderNum string) (orderNumber string, orderStatus string, orderAccrual float64)
+	getOrder(orderNum string) (orderNumber string, orderStatus string, orderAccrual float64, err error)
 	getDataFromDB() []string
 	updateAccrual(orderNumber string, orderStatus string, orderAccrual float64) error
 }

@@ -76,14 +76,14 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 		payload, err := io.ReadAll(resp.Body)
 		if err != nil {
 			a.logger.Printf("can't read http body: %s", err)
-			return "", "", 0
+			return "", "", 0, nil
 		}
 		order := &AccrualOrder{}
 		err = json.Unmarshal(payload, order)
 		if err != nil {
 			a.logger.Printf("HTTP Client unmarshal err %s", err)
 		}
-		return order.Number, order.Status, order.Accrual
+		return order.Number, order.Status, order.Accrual, nil
 
 		//scanner := bufio.NewScanner(resp.Body)
 		//for scanner.Scan() {
@@ -98,7 +98,7 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 		//	return order.Number, order.Status, order.Accrual
 		//}
 	}
-	return "", "", 0
+	return "", "", 0, nil
 }
 
 // getDataFromDB - получает из БД заказы со стратусом NEW и PROCESSING

@@ -61,7 +61,7 @@ func (a *accrualClientStruct) Init() {
 
 // getOrder получает данные из accrual системы
 func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error){
-	endpoint := fmt.Sprintf("http://%s/api/orders/%s", a.accrualAddress, orderNum)
+	endpoint := fmt.Sprintf("%s/api/orders/%s", a.accrualAddress, orderNum)
 	a.logger.Printf("HTTP Client: HTTP GET to endpoint: %s", endpoint)
 	resp, err := http.Get(endpoint)
 	if err != nil {

@@ -1,4 +1,4 @@
-package httpClient
+package сlient
 
 import (
 	"bufio"
@@ -102,7 +102,7 @@ func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accr
 	//// Получить данные о текущем заказе и пользователе из БД
 	order, err := a.db.GetOrderByNumber(a.ctx, orderNum)
 	if err != nil {
-		errMsg := fmt.Errorf("can't get order by orderNumber: %s\n", err)
+		errMsg := fmt.Errorf("can't get order by orderNumber: %s", err)
 		a.logger.Println(errMsg)
 		return errMsg
 	}
@@ -114,7 +114,7 @@ func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accr
 		// Посчитать новые значения для accrual.current_point, accrual.total_point
 		currentPoint, totalPoint, err := a.db.GetAccrual(a.ctx, order.UserID)
 		if err != nil {
-			errMsg := fmt.Errorf("can't get accrual on userID: '%d', err: %s\n", order.UserID, err)
+			errMsg := fmt.Errorf("can't get accrual on userID: '%d', err: %s", order.UserID, err)
 			a.logger.Println(errMsg)
 			return errMsg
 		}
@@ -126,16 +126,16 @@ func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accr
 		// Обновляем данные в таблице accrual.current_point, accrual.total_point для userID
 		err = a.db.UpdateAccrual(a.ctx, currentPoint, totalPoint, order.UserID)
 		if err != nil {
-			errMsg := fmt.Errorf("can't update accrual for userID: '%d', err: %s\n", order.UserID, err)
+			errMsg := fmt.Errorf("can't update accrual for userID: '%d', err: %s", order.UserID, err)
 			a.logger.Println(errMsg)
 			return errMsg
 		}
-		a.logger.Print("success update table 'accrual' for userID: '%d'", order.UserID)
+		a.logger.Printf("success update table 'accrual' for userID: '%d'", order.UserID)
 
 		// Обновить данные об в таблице app_order.accrual для orderNumber
 		err = a.db.UpdateOrderAccrual(a.ctx, accrual, order.Number)
 		if err != nil {
-			errMsg := fmt.Errorf("can't update 'app_order.accrual' for userID: '%d', err: %s\n", order.UserID, err)
+			errMsg := fmt.Errorf("can't update 'app_order.accrual' for userID: '%d', err: %s", order.UserID, err)
 			a.logger.Println(errMsg)
 			return errMsg
 		}
@@ -145,7 +145,7 @@ func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accr
 	err = a.db.OrderStatusUpdate(a.ctx, orderNum, status)
 	if err != nil {
 		//a.logger.Printf("updateAccrual, OrderStatusUpdate error %s\n", err)
-		errMsg := fmt.Errorf("can't update 'app_order.status' %s for order: '%s', err: %s\n", status, orderNum, err)
+		errMsg := fmt.Errorf("can't update 'app_order.status' %s for order: '%s', err: %s", status, orderNum, err)
 		a.logger.Println(errMsg)
 		return errMsg
 	}

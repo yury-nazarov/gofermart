@@ -53,7 +53,7 @@ func (a *accrualClientStruct) Init() {
 			}
 		}
 		a.logger.Println("accrual.Init()----------------------------------")
-		time.Sleep(500000 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 

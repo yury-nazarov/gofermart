@@ -328,7 +328,6 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 	c.logger.Printf("success calculate withdraw balance for userID: %d", userID)
 	w.WriteHeader(http.StatusOK)
-	return
 }
 
 // Withdrawals получение информации о выводе средств с накопительного счёта пользователем

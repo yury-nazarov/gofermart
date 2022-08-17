@@ -36,17 +36,17 @@ func (a *accrualClientStruct) Init() {
 			a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
 
 			// TODO: DEBUG
-		//	// Выполняем запрос в систему рассчета баллов
-		//	orderNum, status, accrual := a.getOrder(order)
-		//
-		//	// Обновляем результат в БД
-		//	if len(orderNum) != 0 {
-		//		a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
-		//		err := a.updateAccrual(orderNum, status, accrual)
-		//		if err != nil {
-		//			a.logger.Printf("updateAccrual have error execute: %s", err)
-		//		}
-		//	}
+			// Выполняем запрос в систему рассчета баллов
+			orderNum, status, accrual := a.getOrder(order)
+
+			// Обновляем результат в БД
+			if len(orderNum) != 0 {
+				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
+				err := a.updateAccrual(orderNum, status, accrual)
+				if err != nil {
+					a.logger.Printf("updateAccrual have error execute: %s", err)
+				}
+			}
 		}
 		// TODO: END DEBUG
 		a.logger.Println("accrual.Init()----------------------------------")

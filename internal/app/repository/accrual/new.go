@@ -81,8 +81,8 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 			a.logger.Printf("can't read http body: %s", err)
 			return "", "", 0, nil
 		}
-		order := AccrualOrder{}
-		err = json.Unmarshal(payload, order)
+		var order AccrualOrder
+		err = json.Unmarshal(payload, &order)
 		if err != nil {
 			a.logger.Printf("HTTP Client unmarshal err %s", err)
 		}

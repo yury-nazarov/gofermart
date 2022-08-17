@@ -45,14 +45,14 @@ func (a *accrualClientStruct) Init() {
 			}
 			a.logger.Printf("orderNum: %s, status: %s, accrual: %f", orderNum, status, accrual)
 
-			//// Обновляем результат в БД
-			//if len(orderNum) != 0 {
-			//	a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
-			//	err := a.updateAccrual(orderNum, status, accrual)
-			//	if err != nil {
-			//		a.logger.Printf("updateAccrual have error execute: %s", err)
-			//	}
-			//}
+			// Обновляем результат в БД
+			if len(orderNum) != 0 {
+				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
+				err := a.updateAccrual(orderNum, status, accrual)
+				if err != nil {
+					a.logger.Printf("updateAccrual have error execute: %s", err)
+				}
+			}
 		}
 		// TODO: END DEBUG
 		a.logger.Println("accrual.Init()----------------------------------")
@@ -81,7 +81,7 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 			a.logger.Printf("can't read http body: %s", err)
 			return "", "", 0, nil
 		}
-		order := &AccrualOrder{}
+		order := AccrualOrder{}
 		err = json.Unmarshal(payload, order)
 		if err != nil {
 			a.logger.Printf("HTTP Client unmarshal err %s", err)

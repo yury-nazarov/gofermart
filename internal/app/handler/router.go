@@ -37,10 +37,10 @@ func NewRouter(c *Controller, user auth.UserInterface, logger *log.Logger) http.
 				})
 				r.Route("/balance", func(r chi.Router) {
 					r.Get("/", c.GetBalance)
-					r.Get("/withdrawals", c.Withdrawals)
+					r.Post("/withdraw", c.Withdraw)
 				})
 				r.Route("/", func(r chi.Router) {
-					r.Post("/withdraw", c.Withdraw)
+					r.Get("/withdrawals", c.Withdrawals)
 				})
 			})
 		})

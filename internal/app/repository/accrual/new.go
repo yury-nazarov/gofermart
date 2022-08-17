@@ -2,7 +2,9 @@ package accrual
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -60,7 +62,7 @@ func (a *accrualClientStruct) Init() {
 
 
 // getOrder получает данные из accrual системы
-func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error){
+func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error) {
 	endpoint := fmt.Sprintf("%s/api/orders/%s", a.accrualAddress, orderNum)
 	a.logger.Printf("HTTP Client: HTTP GET to endpoint: %s", endpoint)
 	resp, err := http.Get(endpoint)
@@ -73,19 +75,22 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 
 	a.logger.Printf("HTTP Client: response status code: %d", resp.StatusCode)
 	//a.logger.Printf("HTTP Client: response body: %d", resp.Body)
-	//if resp.StatusCode == 200 {
-	//	payload, err := io.ReadAll(resp.Body)
-	//	if err != nil {
-	//		a.logger.Printf("can't read http body: %s", err)
-	//		return "", "", 0, nil
-	//	}
-	//	order := &AccrualOrder{}
-	//	err = json.Unmarshal(payload, order)
-	//	if err != nil {
-	//		a.logger.Printf("HTTP Client unmarshal err %s", err)
-	//	}
-	//	return order.Number, order.Status, order.Accrual, nil
+	if resp.StatusCode == 200 {
+		payload, err := io.ReadAll(resp.Body)
+		if err != nil {
+			a.logger.Printf("can't read http body: %s", err)
+			return "", "", 0, nil
+		}
+		order := &AccrualOrder{}
+		err = json.Unmarshal(payload, order)
+		if err != nil {
+			a.logger.Printf("HTTP Client unmarshal err %s", err)
+		}
+		return order.Number, order.Status, order.Accrual, nil
+	}
 	return "", "", 0, nil
+}
+	//return "", "", 0, nil
 		//scanner := bufio.NewScanner(resp.Body)
 		//for scanner.Scan() {
 		//	// Получаем текс
@@ -100,7 +105,7 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 		//}
 	//}
 	//return "", "", 0, nil
-}
+
 
 // getDataFromDB - получает из БД заказы со стратусом NEW и PROCESSING
 func (a *accrualClientStruct) getDataFromDB() []string{

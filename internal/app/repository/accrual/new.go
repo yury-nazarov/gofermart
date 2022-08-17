@@ -29,23 +29,25 @@ func (a *accrualClientStruct) Init() {
 	//	уточняем их состояние в accrual
 	for {
 		// Получаем все со статусом NEW, PROCESSING из БД
-		orderList := a.getDataFromDB()
-		a.logger.Printf("HTTP Client: get Orders from DB: %s", orderList)
-		for _, order := range orderList {
-			//a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
-			// Выполняем запрос в систему рассчета баллов
-			orderNum, status, accrual := a.getOrder(order)
-
-			// Обновляем результат в БД
-			if len(orderNum) != 0 {
-				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
-				err := a.updateAccrual(orderNum, status, accrual)
-				if err != nil {
-					a.logger.Printf("updateAccrual have error execute: %s", err)
-				}
-			}
-		}
-		a.logger.Println("-------------------------------------------")
+		// TODO: DEBUG
+		//orderList := a.getDataFromDB()
+		//a.logger.Printf("HTTP Client: get Orders from DB: %s", orderList)
+		//for _, order := range orderList {
+		//	//a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
+		//	// Выполняем запрос в систему рассчета баллов
+		//	orderNum, status, accrual := a.getOrder(order)
+		//
+		//	// Обновляем результат в БД
+		//	if len(orderNum) != 0 {
+		//		a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
+		//		err := a.updateAccrual(orderNum, status, accrual)
+		//		if err != nil {
+		//			a.logger.Printf("updateAccrual have error execute: %s", err)
+		//		}
+		//	}
+		//}
+		// TODO: END DEBUG
+		a.logger.Println("accrual.Init()----------------------------------")
 		time.Sleep(5000 * time.Millisecond)
 	}
 }
@@ -65,7 +67,7 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 	if resp.StatusCode == 200 {
 		payload, err := io.ReadAll(resp.Body)
 		if err != nil {
-			a.logger.Printf("can't read http body", err)
+			a.logger.Printf("can't read http body: %s", err)
 			return "", "", 0
 		}
 		order := &AccrualOrder{}

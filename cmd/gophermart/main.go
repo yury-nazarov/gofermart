@@ -37,7 +37,7 @@ func main() {
 
 	// Запускаем горутины в бусконечном цикле которые будут периодически опрашивать accrualServer и обновлять значение в БД
 	accrualClient := accrual.NewAccrual(accrualAddress, db, logger)
-	//go accrualClient.Init()
+	go accrualClient.Init()
 
 	// Бизнес логика работы с заказами
 	order := processing.NewOrder(db, logger)

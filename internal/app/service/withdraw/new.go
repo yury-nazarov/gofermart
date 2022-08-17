@@ -3,6 +3,7 @@ package withdraw
 import (
 	"context"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"log"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
@@ -37,10 +38,16 @@ func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance
 }
 
 func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNum string, sum float64) (err402 error, err422 error, err500 error) {
-	// err422:  Проверить наличие заказа у пользователя если его нет  err402 - заказ не найден
-	_, err := b.db.GetOrderByUserID(ctx, orderNum, userID)
+	// TODO: Возможно надо как то по другому проверять на  422
+	//// err422:  Проверить наличие заказа у пользователя если его нет err402 - заказ не найден
+	//_, err := b.db.GetOrderByUserID(ctx, orderNum, userID)
+	//if err != nil {
+	//	return nil, fmt.Errorf("order %s not found", orderNum), nil
+	//}
+	// Проверить номер заказа Луном
+	err := processing.CorrectOrderNumber(orderNum)
 	if err != nil {
-		return nil, fmt.Errorf("order not found"), nil
+		return nil, fmt.Errorf("order %s not found", orderNum), nil
 	}
 
 	// Получить текущее значение app_user.accrual_current

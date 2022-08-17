@@ -23,7 +23,7 @@ func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
 func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err409, err422, err500 error) {
 	// err422 - Проверяем корректен ли номер заказа
 	// если номер заказа некорректный - отвечаем со статусом 422
-	err422 = correctOrderNumber(orderNum)
+	err422 = CorrectOrderNumber(orderNum)
 	if err422 != nil {
 		return false, false, nil, fmt.Errorf("orderNum: '%s', correctOrderNumber is wrong: %s", orderNum, err422), nil
 	}
@@ -59,9 +59,9 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	return false, false, nil, nil, fmt.Errorf("create order somfing wrong")
 }
 
-// correctOrderNumber - проверяет корректность номера заказа
+// CorrectOrderNumber - проверяет корректность номера заказа
 // 						Длина больше 0 и коректен по луну
-func correctOrderNumber(orderNum string) error {
+func CorrectOrderNumber(orderNum string) error {
 	if len(orderNum) == 0 {
 		return fmt.Errorf("order num is empty")
 	}

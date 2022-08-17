@@ -35,8 +35,6 @@ func (a *accrualClientStruct) Init() {
 		for _, order := range orderList {
 			a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
 
-
-			// TODO: DEBUG
 			// Выполняем запрос в систему рассчета баллов
 			orderNum, status, accrual, err := a.getOrder(order)
 			if err != nil {
@@ -54,7 +52,6 @@ func (a *accrualClientStruct) Init() {
 				}
 			}
 		}
-		// TODO: END DEBUG
 		a.logger.Println("accrual.Init()----------------------------------")
 		time.Sleep(5000 * time.Millisecond)
 	}
@@ -90,22 +87,6 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 	}
 	return "", "", 0, nil
 }
-	//return "", "", 0, nil
-		//scanner := bufio.NewScanner(resp.Body)
-		//for scanner.Scan() {
-		//	// Получаем текс
-		//	response := scanner.Bytes()
-		//	// Парсив JSON
-		//	order := &AccrualOrder{}
-		//	err = json.Unmarshal(response, order)
-		//	if err != nil {
-		//		a.logger.Printf("HTTP Client unmarshal err %s", err)
-		//	}
-		//	return order.Number, order.Status, order.Accrual
-		//}
-	//}
-	//return "", "", 0, nil
-
 
 // getDataFromDB - получает из БД заказы со стратусом NEW и PROCESSING
 func (a *accrualClientStruct) getDataFromDB() []string{

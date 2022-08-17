@@ -1,10 +1,10 @@
 package сlient
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -63,18 +63,30 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 
 	a.logger.Printf("HTTP Client: response status code: %d", resp.StatusCode)
 	if resp.StatusCode == 200 {
-		scanner := bufio.NewScanner(resp.Body)
-		for scanner.Scan() {
-			// Получаем текс
-			response := scanner.Bytes()
-			// Парсив JSON
-			order := &AccrualOrder{}
-			err = json.Unmarshal(response, order)
-			if err != nil {
-				a.logger.Printf("HTTP Client unmarshal err %s", err)
-			}
-			return order.Number, order.Status, order.Accrual
+		payload, err := io.ReadAll(resp.Body)
+		if err != nil {
+			a.logger.Printf("can't read http body", err)
+			return "", "", 0
 		}
+		order := &AccrualOrder{}
+		err = json.Unmarshal(payload, order)
+		if err != nil {
+			a.logger.Printf("HTTP Client unmarshal err %s", err)
+		}
+		return order.Number, order.Status, order.Accrual
+
+		//scanner := bufio.NewScanner(resp.Body)
+		//for scanner.Scan() {
+		//	// Получаем текс
+		//	response := scanner.Bytes()
+		//	// Парсив JSON
+		//	order := &AccrualOrder{}
+		//	err = json.Unmarshal(response, order)
+		//	if err != nil {
+		//		a.logger.Printf("HTTP Client unmarshal err %s", err)
+		//	}
+		//	return order.Number, order.Status, order.Accrual
+		//}
 	}
 	return "", "", 0
 }

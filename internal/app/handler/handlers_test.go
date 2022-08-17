@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/httpClient"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual_client"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"io/ioutil"
 	"log"

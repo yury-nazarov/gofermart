@@ -1,4 +1,4 @@
-package сlient
+package accrual_client
 
 import (
 	"context"

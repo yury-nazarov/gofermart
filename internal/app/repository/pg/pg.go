@@ -213,19 +213,21 @@ func (p *pg) GetOrders() ([]string, error) {
 	defer func() {
 		err = rows.Close()
 		if err != nil {
-			//log.Println("")
+			log.Println(err)
 		}
 		err = rows.Err()
 		if err != nil {
-			//
+			log.Println(err)
 		}
 	}()
 	for rows.Next(){
 		var order string
 		if err = rows.Scan(&order); err != nil {
-			//
+			log.Println(err)
+		} else {
+			orderList = append(orderList, order)
 		}
-		orderList = append(orderList, order)
+
 	}
 	return orderList, nil
 }

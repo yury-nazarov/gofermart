@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual_client"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/httpClient"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"github.com/yury-nazarov/gofermart/internal/app/service/withdraw"
@@ -15,17 +15,17 @@ import (
 
 type Controller struct {
 	//db     		repository.DBInterface
-	user         auth.UserInterface
-	loginSession cache.UserSessionInterface
-	order        processing.OrderInterface
-	balance withdraw.BalanceInterface
-	accrual httpClient.AccrualInterface
-	logger  *log.Logger
+	user         	auth.UserInterface
+	loginSession 	cache.UserSessionInterface
+	order        	processing.OrderInterface
+	balance 		withdraw.BalanceInterface
+	accrual 		accrual_client.AccrualInterface
+	logger  		*log.Logger
 	// as accrualService
 }
 
 func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order processing.OrderInterface,
-	balance withdraw.BalanceInterface, accrual httpClient.AccrualInterface, logger *log.Logger) *Controller {
+	balance withdraw.BalanceInterface, accrual accrual_client.AccrualInterface, logger *log.Logger) *Controller {
 	c := &Controller{
 		user:         user,
 		loginSession: loginSession,

@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual_client"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"github.com/yury-nazarov/gofermart/internal/app/handler"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"github.com/yury-nazarov/gofermart/internal/app/service/withdraw"
@@ -36,7 +36,7 @@ func main() {
 	user := auth.NewAuth(db, loginSession, logger)
 
 	// Запускаем горутины в бусконечном цикле которые будут периодически опрашивать accrualServer и обновлять значение в БД
-	accrualClient := accrual_client.NewAccrual(accrualAddress, db, logger)
+	accrualClient := accrual.NewAccrual(accrualAddress, db, logger)
 	go accrualClient.Init()
 
 	// Бизнес логика работы с заказами

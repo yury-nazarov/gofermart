@@ -62,6 +62,7 @@ func (p *pg) SchemeInit() error {
     											id serial 		PRIMARY KEY,
     											order_num	 	VARCHAR (255) NOT NULL,
     											sum_points	 	FLOAT,
+    											user_id 		INT NOT NULL,
                                    				processed_at 	TIMESTAMP default NOW()
 												)`)
 	if errWithdrawList != nil {
@@ -273,9 +274,9 @@ func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) 
 }
 
 
-func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64) error {
-	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points) 
-											VALUES ($1, $2)`, orderNum, sumPoints)
+func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64, userID int) error {
+	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points, user_id) 
+											VALUES ($1, $2, $3)`, orderNum, sumPoints, userID)
 	if err != nil {
 		return err
 	}

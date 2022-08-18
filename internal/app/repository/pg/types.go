@@ -43,5 +43,5 @@ type DBInterface interface {
 	// GetOrderByUserID проверяем налицие заказа для конкретного пользователя
 	GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error)
 	// AddToWithdrawList - добавляет новую запись в журнал
-	AddToWithdrawList(ctx context.Context, orderNum string, sum float64) error
+	AddToWithdrawList(ctx context.Context, orderNum string, sum float64, userID int) error
 }

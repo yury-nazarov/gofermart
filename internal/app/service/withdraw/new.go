@@ -71,7 +71,7 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 	}
 
 	// записать в withdraw_list
-	err = b.db.AddToWithdrawList(ctx, orderNum, sum)
+	err = b.db.AddToWithdrawList(ctx, orderNum, sum, userID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't insert to withdraw_list. err: %s", err)
 	}

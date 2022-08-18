@@ -140,7 +140,7 @@ func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o OrderDB, 
 	return o, nil
 }
 
-// AddOrder -
+// AddOrder добавит новый номер заказа
 func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 error) {
 	_, err500 = p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
 											 VALUES ($1, $2, $3, $4)`, orderNum, userID, "NEW", 0)
@@ -150,6 +150,7 @@ func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 
 	return nil
 }
 
+// AddAccrual добавляет запись в таблицу accrual
 func (p *pg) AddAccrual(ctx context.Context, userID int) error {
 	_, err500 := p.db.ExecContext(ctx, `INSERT INTO accrual (current_point, total_point, user_id) 
 											  VALUES (0, 0, $1)`, userID)
@@ -160,7 +161,7 @@ func (p *pg) AddAccrual(ctx context.Context, userID int) error {
 }
 
 
-// ListOrders -
+// ListOrders Получить спосок заказов пользователя
 func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT number, status, accrual, uploaded_at 
 				 	   							FROM app_order WHERE user_id=$1`, userID)
@@ -190,6 +191,7 @@ func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, e
 	return orderList, nil
 }
 
+// GetOrders получает все заказы со статусом NEW, PROCESSING
 func (p *pg) GetOrders() ([]string, error) {
 	var orderList []string
 	rows, err := p.db.Query(`SELECT number FROM app_order WHERE status='NEW' OR status='PROCESSING'`)
@@ -219,6 +221,7 @@ func (p *pg) GetOrders() ([]string, error) {
 	return orderList, nil
 }
 
+// OrderStatusUpdate обновить статус заказа
 func (p *pg) OrderStatusUpdate(ctx context.Context, orderNum string, status string) error {
 	_, err500 := p.db.ExecContext(ctx, `UPDATE app_order SET status=$1 WHERE number=$2`, status, orderNum)
 	if err500 != nil {
@@ -227,6 +230,7 @@ func (p *pg) OrderStatusUpdate(ctx context.Context, orderNum string, status stri
 	return nil
 }
 
+//GetAccrual получить текущие значения таблицы: app_user.accrual_current, app_user.accrual_total
 func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, totalPoint float64, err error) {
 
 	err = p.db.QueryRowContext(ctx, `SELECT accrual_current, accrual_total FROM app_user
@@ -237,6 +241,7 @@ func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, 
 	return currentPoint, totalPoint, nil
 }
 
+// UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
 func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error {
 	_, err := p.db.ExecContext(ctx, `UPDATE app_user 
 										   SET accrual_current=$1, accrual_total=$2 
@@ -247,6 +252,7 @@ func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint
 	return nil
 }
 
+// UpdateOrderAccrual - обновляет значения для app_order.accrual
 func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error {
 	_, err := p.db.ExecContext(ctx, `UPDATE app_order SET accrual=$1
 										   WHERE number=$2`, accrual, orderNumber)
@@ -256,6 +262,7 @@ func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumbe
 	return nil
 }
 
+// GetOrderByUserID проверяем налицие заказа для конкретного пользователя
 func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error) {
 	var status string
 
@@ -268,7 +275,7 @@ func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) 
 	return status, nil
 }
 
-
+// AddToWithdrawList - добавляет новую запись в журнал
 func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64, userID int) error {
 	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points, user_id) 
 										   VALUES ($1, $2, $3)`, orderNum, sumPoints, userID)
@@ -278,6 +285,7 @@ func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints f
 	return nil
 }
 
+// GetWithdrawList вернет список всех списаний для пользователя
 func (p *pg) GetWithdrawList(ctx context.Context, userID int) (withdrawList []WithdrawDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT order_num, sum_points, processed_at
 											   FROM withdraw_list

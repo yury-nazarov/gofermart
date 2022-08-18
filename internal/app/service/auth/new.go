@@ -47,7 +47,7 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 	// Записываем логин и хеш пароля в БД
 	userID, err := a.db.NewUser(ctx, login, hashPwd)
 	if err != nil {
-		errString := fmt.Sprintf("NewUser sql querry error: %s", err)
+		errString := fmt.Sprintf("can't create new user. err: %s", err)
 		a.logger.Print(errString)
 		return "", fmt.Errorf("%s", errString), nil
 	}
@@ -56,13 +56,12 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 	token = newToken()
 	err = a.loginSession.Add(token, userID)
 	if err != nil {
-		errString := fmt.Sprintf("add token to session: %s", err)
+		errString := fmt.Sprintf("can't init user session. err: %s", err)
 		a.logger.Print(errString)
 		return "", nil, fmt.Errorf("%s", errString)
 	}
 
 	// Возвращаем токен для записи в заголовок
-	a.logger.Printf("token: %s success", token)
 	return token, nil, nil
 }
 
@@ -70,8 +69,6 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (token string, err401 error, err500 error) {
 	// Считаем хеш пароля
 	hashPwd := hashPassword(password)
-	// TODO: DEBUG
-	a.logger.Printf("DEBUG: Calculate hash. User %s, has: %s", login, hashPwd)
 
 	// Проверяем в БД наличие пользователя
 	userID, err401 := a.db.UserIsValid(ctx, login, hashPwd)
@@ -80,8 +77,6 @@ func (a authLocalStruct) SignIn(ctx context.Context, login string, password stri
 		a.logger.Print(errString)
 		return "", fmt.Errorf("%s", errString), nil
 	}
-	// TODO: DEBUG
-	a.logger.Printf("DEBUG: User %s exist with hash pwd: %s", login, hashPwd)
 
 	// Генерим токен, добавляем в сессию
 	token = newToken()
@@ -91,8 +86,6 @@ func (a authLocalStruct) SignIn(ctx context.Context, login string, password stri
 		a.logger.Print(errString)
 		return "", nil, fmt.Errorf("%s", errString)
 	}
-	// TODO: DEBUG
-	a.logger.Printf("DEBUG: User %s: Add  user id: %d and token: %s in to session", login, userID, token)
 
 	return token, nil, nil
 
@@ -121,11 +114,6 @@ func newToken() string {
 	return fmt.Sprintf("%x", b)
 }
 
-//// hashPassword считает хеш из пароля - при этом каждый раз разный. Больше подходит для токена))
-//func hashPassword(password string) (string, error) {
-//	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-//	return string(bytes), err
-//}
 
 // hashPassword считает хеш из пароля
 func hashPassword(password string) string {

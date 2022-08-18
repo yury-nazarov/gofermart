@@ -359,7 +359,7 @@ func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
 
 	withdrawList, err204, err500 := c.balance.Withdrawals(r.Context(), userID)
 	if err204 != nil {
-		c.logger.Printf("withdraw list for userID: %s is empty\n", userID)
+		c.logger.Printf("withdraw list for userID: %d is empty", userID)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}

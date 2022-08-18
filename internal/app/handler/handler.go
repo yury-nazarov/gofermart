@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"io"
 	"log"
 	"net/http"
@@ -290,7 +291,7 @@ func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 //			}
 func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
-	withdraw := withdraw.Withdraw{}
+	withdraw := pg.WithdrawDB{}
 	err400 := JSONError400(r, &withdraw, c.logger)
 	if err400 != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -346,5 +347,45 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 //					401 — пользователь не авторизован.
 //					500 — внутренняя ошибка сервера.
 func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
+	// Получить из заголовка token и преобразовать его в userID
+	token := r.Header.Get("Authorization")
+	userID, err := c.loginSession.GetUserIDByToken(token)
+	if err != nil {
+		errMsg := fmt.Errorf("can't connection to cache of user session: err %s", err)
+		c.logger.Print(errMsg)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	withdrawList, err204, err500 := c.balance.Withdrawals(r.Context(), userID)
+	if err204 != nil {
+		c.logger.Printf("withdraw list for userID: %s is empty\n", userID)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if err500 != nil {
+		c.logger.Printf("can't connection to cache of user session: err %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Сериализуем JSON и отдаем пользователю
+	withdrawListJSON, err500 := json.Marshal(withdrawList)
+	if err500 != nil {
+		c.logger.Printf("can't json marshal. err: %s\n", err500)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	log.Println("withdrawList", withdrawList)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err500 = w.Write(withdrawListJSON)
+	if err500 != nil {
+		c.logger.Printf("can't send json bites to client. error: %s", err500)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 }
+
+

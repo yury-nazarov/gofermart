@@ -13,6 +13,13 @@ type OrderDB struct {
 	UploadedAt string  	`json:"uploaded_at"`	// Дата загрузки в формате RFC3339
 }
 
+// WithdrawDB структура для анмаршала JSON из HTTP Request
+type WithdrawDB struct {
+	Order 			string 		`json:"order"`
+	Sum 			float64 	`json:"sum"`
+	ProcessedAt 	string 		`json:"processed_at,omitempty"`
+}
+
 // DBInterface методы работы с релиационными БД
 type DBInterface interface {
 	Ping() bool
@@ -44,4 +51,6 @@ type DBInterface interface {
 	GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error)
 	// AddToWithdrawList - добавляет новую запись в журнал
 	AddToWithdrawList(ctx context.Context, orderNum string, sum float64, userID int) error
+	// GetWithdrawList вернет список всех списаний для пользователя
+	GetWithdrawList(ctx context.Context, userID int) ([]WithdrawDB, error)
 }

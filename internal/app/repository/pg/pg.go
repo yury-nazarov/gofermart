@@ -276,9 +276,38 @@ func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) 
 
 func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64, userID int) error {
 	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points, user_id) 
-											VALUES ($1, $2, $3)`, orderNum, sumPoints, userID)
+										   VALUES ($1, $2, $3)`, orderNum, sumPoints, userID)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (p *pg) GetWithdrawList(ctx context.Context, userID int) (withdrawList []WithdrawDB, err error) {
+	rows, err := p.db.QueryContext(ctx, `SELECT order_num, sum_points, processed_at
+											   FROM withdraw_list
+											   WHERE user_id=$1
+											   ORDER BY processed_at`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rows.Close()
+		if err != nil {
+			log.Printf("defer rows.Close() error: %s", err)
+		}
+		err = rows.Err()
+		if err != nil {
+			log.Printf("defer rows.Err() error: %s", err)
+		}
+	}()
+	withdraw := WithdrawDB{}
+	for rows.Next() {
+		err = rows.Scan(&withdraw.Order, &withdraw.Sum, &withdraw.ProcessedAt)
+		if err != nil {
+			log.Printf("can't read string for withdrow_list: %s", err)
+		}
+		withdrawList = append(withdrawList, withdraw)
+	}
+	return withdrawList, nil
 }

@@ -3,10 +3,11 @@ package withdraw
 import (
 	"context"
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"log"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
+	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
+	"github.com/yury-nazarov/gofermart/pkg/tools"
 )
 
 type balanceStruct struct {
@@ -78,12 +79,31 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 	return nil, nil, nil
 }
 
+func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawList []pg.WithdrawDB, err204 error, err500 error) {
+	// Получить данные из таблицы withdraw_list
+	RawWithdrawList, err500 := b.db.GetWithdrawList(ctx, userID)
+	if err500 != nil {
+		return nil, nil, fmt.Errorf("can't get data from table 'withdraw_list'. err: %s", err500)
+	}
+	if len(RawWithdrawList) == 0 {
+		return nil, fmt.Errorf(" 'withdraw_list' is empty'"), nil
+	}
+	// Преобразовать дату в RFC3339
+	b.logger.Print(RawWithdrawList)
 
-func (b *balanceStruct) WriteToWithdrawList(ctx context.Context, orderNum string, sum float64) error {
-	return nil
-}
+	for _, v := range RawWithdrawList {
+		dataRFC3339, err := tools.ToRFC3339(v.ProcessedAt, "Europe/Moscow")
+		if err != nil {
+			b.logger.Printf("can't convert datatime. err: %s", err)
+		}
+		withdraw := pg.WithdrawDB{}
+		withdraw.Order = v.Order
+		withdraw.Sum = v.Sum
+		withdraw.ProcessedAt = dataRFC3339
 
-func (b *balanceStruct) ReadFromWithdrawList(ctx context.Context, orderNum string) (Withdraw, error) {
-	var w Withdraw
-	return w, nil
+		WithdrawList = append(WithdrawList, withdraw)
+
+	}
+	//log.Println("WithdrawList", WithdrawList)
+	return WithdrawList, nil, nil
 }

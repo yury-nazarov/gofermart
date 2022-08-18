@@ -1,6 +1,9 @@
 package withdraw
 
-import "context"
+import (
+	"context"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
+)
 
 /*
 	Типы для работы со слоем бизнес логики: вывод средств и запрос текущего баланса
@@ -11,10 +14,8 @@ type BalanceInterface interface {
 	CurrentBalance(ctx context.Context, userID int) (Balance, error)
 	// WithdrawBalance выводит средства со счета польователя
 	WithdrawBalance(ctx context.Context, userID int, order string, sum float64) (err402 error, err422 error, err500 error)
-	// WriteToWithdrawList Заносим информацию о списании в журнал
-	WriteToWithdrawList(ctx context.Context, orderNum string, sum float64) error
-	// ReadFromWithdrawList Получаем все записи из журнала
-	ReadFromWithdrawList(ctx context.Context, orderNum string) (Withdraw, error)
+	// Withdrawals - возвращает список списаний для пользователя
+	Withdrawals(ctc context.Context, userID int) (WithdrawList []pg.WithdrawDB, err204 error, err500 error)
 }
 
 // Balance Для маршала json перед отправкой пользователю
@@ -23,9 +24,3 @@ type Balance struct {
 	Withdrawn 	float64 `json:"withdrawn"`
 }
 
-// Withdraw структура для анмаршала JSON из HTTP Request
-type Withdraw struct {
-	 Order 			string 		`json:"order"`
-	 Sum 			float64 	`json:"sum"`
-	 ProcessedAt 	string 		`json:"processed_at,omitempty"`
-}

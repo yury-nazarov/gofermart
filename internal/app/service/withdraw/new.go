@@ -39,12 +39,6 @@ func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance
 }
 
 func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNum string, sum float64) (err402 error, err422 error, err500 error) {
-	// TODO: Возможно надо как то по другому проверять на  422
-	//// err422:  Проверить наличие заказа у пользователя если его нет err402 - заказ не найден
-	//_, err := b.db.GetOrderByUserID(ctx, orderNum, userID)
-	//if err != nil {
-	//	return nil, fmt.Errorf("order %s not found", orderNum), nil
-	//}
 	// Проверить номер заказа Луном
 	err := processing.CorrectOrderNumber(orderNum)
 	if err != nil {
@@ -57,7 +51,6 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 		return nil, nil, fmt.Errorf("can't get accrual. err: %s", err)
 	}
 	// err402: Не достаточно средств
-	b.logger.Printf("DEBUG: compare %f < %f", accrualCurrent, sum)
 	if accrualCurrent < sum {
 		return fmt.Errorf("not enough points"), nil, nil
 	}
@@ -89,8 +82,6 @@ func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawLi
 		return nil, fmt.Errorf(" 'withdraw_list' is empty'"), nil
 	}
 	// Преобразовать дату в RFC3339
-	b.logger.Print(RawWithdrawList)
-
 	for _, v := range RawWithdrawList {
 		dataRFC3339, err := tools.ToRFC3339(v.ProcessedAt, "Europe/Moscow")
 		if err != nil {
@@ -104,6 +95,5 @@ func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawLi
 		WithdrawList = append(WithdrawList, withdraw)
 
 	}
-	//log.Println("WithdrawList", WithdrawList)
 	return WithdrawList, nil, nil
 }

@@ -28,8 +28,6 @@ func main() {
 	db := pg.NewDB(pg.DBConfig{PGConnStr: pgConfig}, logger)
 
 	// Инициируем loginCache для проверки сессии пользователя
-	// TODO: 1. Переименовать в NewLoginSession().
-	//		 2. Передовать по ссылке иначе оно будет копироватся
 	loginSession := cache.NewLoginCache()
 
 	// Регистрация и авторизация пользователя

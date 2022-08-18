@@ -127,11 +127,10 @@ func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accr
 			a.logger.Println(errMsg)
 			return errMsg
 		}
-		a.logger.Printf("success get accrual info for userID: '%d', from table 'accrual' currentPoint: '%f', totalPoint: '%f'", order.UserID, currentPoint, totalPoint)
 		// При успешном получениее данных из accrual начисляем баллы
 		currentPoint += accrual
 		totalPoint += accrual
-		a.logger.Printf("success calculate accrual points for userID: '%d', table 'accrual' currentPoint: '%f', totalPoint: '%f'", order.UserID, currentPoint, totalPoint)
+
 		// Обновляем данные в таблице accrual.current_point, accrual.total_point для userID
 		err = a.db.UpdateAccrual(a.ctx, currentPoint, totalPoint, order.UserID)
 		if err != nil {
@@ -153,7 +152,6 @@ func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accr
 	// Обновляем статус если: INVALID, PROCESSING, REGISTERED
 	err = a.db.OrderStatusUpdate(a.ctx, orderNum, status)
 	if err != nil {
-		//a.logger.Printf("updateAccrual, OrderStatusUpdate error %s\n", err)
 		errMsg := fmt.Errorf("can't update 'app_order.status' %s for order: '%s', err: %s", status, orderNum, err)
 		a.logger.Println(errMsg)
 		return errMsg

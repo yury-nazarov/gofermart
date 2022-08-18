@@ -3,29 +3,28 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"io"
 	"log"
 	"net/http"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"github.com/yury-nazarov/gofermart/internal/app/service/withdraw"
 )
 
 type Controller struct {
-	//db     		repository.DBInterface
 	user         	auth.UserInterface
 	loginSession 	cache.UserSessionInterface
 	order        	processing.OrderInterface
-	balance withdraw.BalanceInterface
-	accrual accrual.AccrualInterface
-	logger  *log.Logger
-	// as accrualService
+	balance 		withdraw.BalanceInterface
+	accrual 		accrual.AccrualInterface
+	logger  		*log.Logger
 }
 
+// New Создаем новый контроллер, через который будем управлять хендлерами
 func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order processing.OrderInterface,
 	balance withdraw.BalanceInterface, accrual accrual.AccrualInterface, logger *log.Logger) *Controller {
 	c := &Controller{
@@ -56,10 +55,12 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	// Регистрируем пользователя
 	token, err409, err500 := c.user.SignUp(r.Context(), user.Login, user.Password)
 	if err409 != nil {
+		c.logger.Printf("can't sing up userLogin: %s, err: %s", user.Login, err409)
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
 	if err500 != nil {
+		c.logger.Print(err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -78,16 +79,19 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	user := auth.User{}
 	err400 := JSONError400(r, &user, c.logger)
 	if err400 != nil {
+		c.logger.Printf("JSON parsing error for login: %s, err: %s", user.Login, err400)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	// Передаем в лой бизнес логики
 	token, err401, err500 := c.user.SignIn(r.Context(), user.Login, user.Password)
 	if err401 != nil {
+		c.logger.Printf("can't sign in login: %s, err: %s", user.Login, err400)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	if err500 != nil {
+		c.logger.Print(err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -100,8 +104,8 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 // AddOrders загрузка пользователем номера заказа для расчёта
 // 			200 — номер заказа уже был загружен этим пользователем;
 //			202 — новый номер заказа принят в обработку;
-//			+ 400 — неверный формат запроса;
-//			+ 401 — пользователь не аутентифицирован;
+//			400 — неверный формат запроса;
+//			401 — пользователь не аутентифицирован;
 //			409 — номер заказа уже был загружен другим пользователем;
 //			422 — неверный формат номера заказа;
 //			500 — внутренняя ошибка сервера.
@@ -109,7 +113,7 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные из HTTP приводим к строке номер заказа
 	bodyData, err400 := io.ReadAll(r.Body)
 	if err400 != nil {
-		c.logger.Printf("handlers/AddOrders, err400: HTTP Body parsing error: %s", err400)
+		c.logger.Printf("HTTP Body parsing error: %s", err400)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -120,13 +124,13 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
 	if err != nil { // Ошибка подключения к кешу
-		c.logger.Printf("handlers/AddOrders, userID: %d can't connection to cache\n", userID)
+		c.logger.Printf("can't connection to cache userID: %d. err: %s", userID, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	// пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
 	if userID == 0 {
-		c.logger.Printf("handlers/AddOrders, userID: %d not authorisation\n", userID)
+		c.logger.Printf("can't authorisation userID: %d", userID)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -135,32 +139,31 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	ok200, ok202, err409, err422, err500 := c.order.Add(r.Context(), order, userID)
 	// номер заказа уже был загружен этим пользователем;
 	if ok200 {
-		c.logger.Printf("handlers/AddOrders, ok200: Order %s for userID %d is exist\n", order, userID)
+		c.logger.Printf("Order %s for userID %d is exist", order, userID)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 	// новый номер заказа принят в обработку;
 	if ok202 {
-		c.logger.Printf("handlers/AddOrders, ok202: Order %s for userID %d accepted and will be processing\n", order, userID)
+		c.logger.Printf("Order %s for userID %d accepted and will be processing", order, userID)
 		w.WriteHeader(http.StatusAccepted)
 		return
 	}
 	// номер заказа уже был загружен другим пользователем;
 	if err409 != nil {
-		c.logger.Printf("handlers/AddOrders, err409: %s\n", err409)
+		c.logger.Printf("order exist, err409: %s", err409)
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
-	c.logger.Printf("DEBUG orderNum: '%s'\n", order)
 	// неверный формат номера заказа
 	if err422 != nil {
-		c.logger.Printf("handlers/AddOrders, err422: %s\n", err422)
+		c.logger.Printf("incorrect order format, err4: %s", err422)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 	// внутренняя ошибка сервера
 	if err500 != nil {
-		c.logger.Printf("handlers/AddOrders, err500: %s\n", err500)
+		c.logger.Print(err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -186,15 +189,14 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
 	if err != nil { // Ошибка подключения к кешу
-		c.logger.Printf("handlers/GetOrders, userID: %d can't connection to cache\n", userID)
+		c.logger.Printf("can't connection to cache userID: %d, err: %s", userID, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	c.logger.Printf("handlers/GetOrders, got userID: %d, for token: %s", userID, token)
 
 	// TODO: НУжна эта проверка?
 	if userID == 0 { // пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
-		c.logger.Printf("handlers/GetOrders, userID: %d not authorisation\n", userID)
+		c.logger.Printf("can't authorisation userID: %d", userID)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -202,12 +204,12 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	// Пробуем получить заказы пользователя
 	orders, err204, err500 := c.order.List(r.Context(), userID)
 	if err204 != nil {
-		c.logger.Printf("handlers/GetOrders,err204:  userID: %d. Order list is empty\n", userID)
+		c.logger.Printf("Order list is empty.  userID: %d, err:", userID, err204)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	if err500 != nil {
-		c.logger.Printf("handlers/GetOrders, from c.order.List got err500: %s\n", err500)
+		c.logger.Print(err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -215,7 +217,7 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	// Сериализуем JSON и отдаем пользователю
 	ordersJSON, err500 := json.Marshal(orders)
 	if err500 != nil {
-		c.logger.Printf("handlers/GetOrders, json marshal return err500: %s\n", err500)
+		c.logger.Printf("can't json marshal. err: %s", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -223,7 +225,7 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err500 = w.Write(ordersJSON)
 	if err500 != nil {
-		c.logger.Printf("handlers/GetOrders, w.Write return err500: %s\n", err500)
+		c.logger.Printf("can't write JSON to client. err: %s", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -232,14 +234,14 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 
 // GetBalance получение текущего баланса счёта баллов лояльности пользователя
 // 			200 — успешная обработка запроса.
-// 			+ 401 — пользователь не авторизован.
+// 			401 — пользователь не авторизован.
 //			500 — внутренняя ошибка сервера.
 func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 	// Получаем пользователя по токену
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
 	if err != nil {
-		errMsg := fmt.Errorf("can't connection to cache of user session: err %s", err)
+		errMsg := fmt.Errorf("can't connection to cache of userID: %s session: err %s", userID, err)
 		c.logger.Print(errMsg)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -268,7 +270,7 @@ func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(jsonBalance)
 	if err != nil {
-		errMsg := fmt.Errorf("can't send json bites to client. error: %s", err)
+		errMsg := fmt.Errorf("can't send json to client. error: %s", err)
 		c.logger.Print(errMsg)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -294,21 +296,20 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	withdraw := pg.WithdrawDB{}
 	err400 := JSONError400(r, &withdraw, c.logger)
 	if err400 != nil {
+		c.logger.Printf("can't json read. err: %s", err400)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	c.logger.Printf("success get withdraw info. orderNum: %s, sum: %f", withdraw.Order, withdraw.Sum)
 
 	// Получить из заголовка token и преобразовать его в userID
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
 	if err != nil {
-		errMsg := fmt.Errorf("can't connection to cache of user session: err %s", err)
+		errMsg := fmt.Errorf("can't connection to cache of userID: %d session: err %s", userID, err)
 		c.logger.Print(errMsg)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	c.logger.Printf("success get userID from user session: %d", userID)
 
 	// Выводим средства со счета пользователя: app_user.current - sum
 	err402, err422, err500 := c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
@@ -318,16 +319,15 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err422 != nil {
-		c.logger.Printf("can't calculate withdraw balance: err %s", err422)
+		c.logger.Printf("order number wrong: err %s", err422)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 	if err500 != nil {
-		c.logger.Printf("can't calculate withdraw balance: err %s", err500)
+		c.logger.Print(err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	c.logger.Printf("success calculate withdraw balance for userID: %d", userID)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -351,7 +351,7 @@ func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
 	if err != nil {
-		errMsg := fmt.Errorf("can't connection to cache of user session: err %s", err)
+		errMsg := fmt.Errorf("can't connection to cache of userID: %d session: err %s", userID, err)
 		c.logger.Print(errMsg)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -381,7 +381,7 @@ func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err500 = w.Write(withdrawListJSON)
 	if err500 != nil {
-		c.logger.Printf("can't send json bites to client. error: %s", err500)
+		c.logger.Printf("can't send json to client. error: %s", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

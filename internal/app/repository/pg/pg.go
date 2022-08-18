@@ -194,7 +194,6 @@ func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, e
 	return orderList, nil
 }
 
-// TODO: Errors
 func (p *pg) GetOrders() ([]string, error) {
 	var orderList []string
 	rows, err := p.db.Query(`SELECT number FROM app_order WHERE status='NEW' OR status='PROCESSING'`)

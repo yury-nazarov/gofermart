@@ -14,7 +14,7 @@ func NewLoginCache() *userSessionStruct {
 	}
 }
 
-// Add - 	добавить токен в кеш. На пример LogIn
+// Add - добавить токен в кеш. На пример LogIn
 func (l *userSessionStruct) Add(token string, userID int) error {
 	l.data[token] = userID
 	return nil

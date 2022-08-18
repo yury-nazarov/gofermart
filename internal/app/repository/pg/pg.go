@@ -81,10 +81,6 @@ func (p *pg) Ping() bool {
 	return true
 }
 
-func (p *pg) GetToken(ctx context.Context, token string) (bool, error) {
-	return true, nil
-}
-
 // GetUser вернет данные пользователя по логину
 
 // UserExist проверяет наличие пользователя в БД по логину

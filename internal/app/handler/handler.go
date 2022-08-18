@@ -204,7 +204,7 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	// Пробуем получить заказы пользователя
 	orders, err204, err500 := c.order.List(r.Context(), userID)
 	if err204 != nil {
-		c.logger.Printf("Order list is empty.  userID: %d, err:", userID, err204)
+		c.logger.Printf("Order list is empty.  userID: %d, err: %s", userID, err204)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -241,7 +241,7 @@ func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
 	if err != nil {
-		errMsg := fmt.Errorf("can't connection to cache of userID: %s session: err %s", userID, err)
+		errMsg := fmt.Errorf("can't connection to cache of userID: %d session: err %s", userID, err)
 		c.logger.Print(errMsg)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

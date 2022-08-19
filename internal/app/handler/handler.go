@@ -295,9 +295,9 @@ func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	withdraw := pg.WithdrawDB{}
-	err400 := JSONError400(r, &withdraw, c.logger)
-	if err400 != nil {
-		c.logger.Printf("can't json read. err: %s", err400)
+	err := JSONError400(r, &withdraw, c.logger)
+	if err != nil {
+		c.logger.Printf("can't json read. err: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -313,19 +313,24 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Выводим средства со счета пользователя: app_user.current - sum
-	err402, err422, err500 := c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
-	if err402 != nil {
-		c.logger.Printf("can't calculate withdraw balance: err %s", err402)
+	var err402 tools.Error402
+	var err422 tools.Error422
+	var err500 tools.Error500
+	//err402, err422, err500 := c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
+	err = c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
+	//if err402 != nil {
+	if errors.As(err, &err402) {
+		c.logger.Printf("can't calculate withdraw balance: err %s", err)
 		w.WriteHeader(http.StatusPaymentRequired)
 		return
 	}
-	if err422 != nil {
-		c.logger.Printf("order number wrong: err %s", err422)
+	if errors.As(err, &err422){
+		c.logger.Printf("order number wrong: err %s", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
-	if err500 != nil {
-		c.logger.Print(err500)
+	if errors.As(err, &err500) {
+		c.logger.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

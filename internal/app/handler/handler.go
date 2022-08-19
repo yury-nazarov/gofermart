@@ -113,9 +113,9 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 //			500 — внутренняя ошибка сервера.
 func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные из HTTP приводим к строке номер заказа
-	bodyData, err400 := io.ReadAll(r.Body)
-	if err400 != nil {
-		c.logger.Printf("HTTP Body parsing error: %s", err400)
+	bodyData, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.logger.Printf("HTTP Body parsing error: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -136,8 +136,11 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var err409 tools.Error409
+	var err422 tools.Error422
+	var err500 tools.Error500
 	// Пробуем добавить заказ
-	ok200, ok202, err409, err422, err500 := c.order.Add(r.Context(), order, userID)
+	ok200, ok202, err := c.order.Add(r.Context(), order, userID)
 	// номер заказа уже был загружен этим пользователем;
 	if ok200 {
 		c.logger.Printf("Order %s for userID %d is exist", order, userID)
@@ -151,20 +154,20 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// номер заказа уже был загружен другим пользователем;
-	if err409 != nil {
-		c.logger.Printf("order exist, err409: %s", err409)
+	if errors.As(err, &err409){
+		c.logger.Printf("order exist. %s", err)
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
 	// неверный формат номера заказа
-	if err422 != nil {
-		c.logger.Printf("incorrect order format, err4: %s", err422)
+	if errors.As(err, &err422) {
+		c.logger.Printf("incorrect order format. err: %s", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 	// внутренняя ошибка сервера
-	if err500 != nil {
-		c.logger.Print(err500)
+	if errors.As(err, &err500) {
+		c.logger.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -195,13 +195,6 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: НУжна эта проверка?
-	if userID == 0 { // пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
-		c.logger.Printf("can't authorisation userID: %d", userID)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	// Пробуем получить заказы пользователя
 	var err204 tools.Error204
 	var err500 tools.Error500

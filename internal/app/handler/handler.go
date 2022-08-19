@@ -79,21 +79,26 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	user := auth.User{}
-	err400 := JSONError400(r, &user, c.logger)
-	if err400 != nil {
-		c.logger.Printf("JSON parsing error for login: %s, err: %s", user.Login, err400)
+	err := JSONError400(r, &user, c.logger)
+	if err != nil {
+		c.logger.Printf("JSON parsing error for login: %s, err: %s", user.Login, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	var err401 tools.Error401
+	var err500 tools.Error500
+
 	// Передаем в лой бизнес логики
-	token, err401, err500 := c.user.SignIn(r.Context(), user.Login, user.Password)
-	if err401 != nil {
-		c.logger.Printf("can't sign in login: %s, err: %s", user.Login, err400)
+	token, err := c.user.SignIn(r.Context(), user.Login, user.Password)
+
+	if errors.As(err, &err401) {
+		c.logger.Printf("can't sign in login: %s, err: %s", user.Login, err)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	if err500 != nil {
-		c.logger.Print(err500)
+	if errors.As(err, &err500) {
+		c.logger.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -129,16 +134,17 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
-	if userID == 0 {
-		c.logger.Printf("can't authorisation userID: %d", userID)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	//// пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+	//if userID == 0 {
+	//	c.logger.Printf("can't authorisation userID: %d", userID)
+	//	w.WriteHeader(http.StatusUnauthorized)
+	//	return
+	//}
 
 	var err409 tools.Error409
 	var err422 tools.Error422
 	var err500 tools.Error500
+
 	// Пробуем добавить заказ
 	ok200, ok202, err := c.order.Add(r.Context(), order, userID)
 	// номер заказа уже был загружен этим пользователем;

@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
+	"github.com/yury-nazarov/gofermart/pkg/tools"
 	"log"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
@@ -66,28 +67,28 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 }
 
 // SignIn вход пользователя
-func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (token string, err401 error, err500 error) {
+func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (token string, err error) {
 	// Считаем хеш пароля
 	hashPwd := hashPassword(password)
 
 	// Проверяем в БД наличие пользователя
-	userID, err401 := a.db.UserIsValid(ctx, login, hashPwd)
-	if err401 != nil {
-		errString := fmt.Sprintf("incorrect login or password: %s", err401)
+	userID, err := a.db.UserIsValid(ctx, login, hashPwd)
+	if err != nil {
+		errString := fmt.Sprintf("incorrect login or password: %s", err)
 		a.logger.Print(errString)
-		return "", fmt.Errorf("%s", errString), nil
+		return "", tools.NewError401(errString)
 	}
 
 	// Генерим токен, добавляем в сессию
 	token = newToken()
-	err := a.loginSession.Add(token, userID)
+	err = a.loginSession.Add(token, userID)
 	if err != nil {
 		errString := fmt.Sprintf("error add token to session: %s", err)
 		a.logger.Print(errString)
-		return "", nil, fmt.Errorf("%s", errString)
+		return "", tools.NewError500(errString)
 	}
 
-	return token, nil, nil
+	return token, nil
 
 }
 

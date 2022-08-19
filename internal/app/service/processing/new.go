@@ -50,7 +50,7 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 
 	// err409 - Заказ создан другим пользователем
 	if order.Number == orderNum && order.UserID != userID {
-		return false, false, tools.NewError409(fmt.Sprintf("order exist for other user"))
+		return false, false, tools.NewError409("order exist for other user")
 	}
 
 	log.Printf("create order somfing wrong")

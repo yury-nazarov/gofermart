@@ -12,14 +12,13 @@ import (
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 )
 
-
 // NewAccrual Создает объект для отправки запросов в систему рассчета баллов
 func NewAccrual(accrualAddress string, db pg.DBInterface, logger *log.Logger) *accrualClientStruct {
 	return &accrualClientStruct{
 		accrualAddress: accrualAddress,
-		db: 			db,
-		logger: 		logger,
-		ctx: 			context.Background(),
+		db:             db,
+		logger:         logger,
+		ctx:            context.Background(),
 	}
 }
 
@@ -57,7 +56,6 @@ func (a *accrualClientStruct) Init() {
 	}
 }
 
-
 // getOrder получает данные из accrual системы
 func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error) {
 	endpoint := fmt.Sprintf("%s/api/orders/%s", a.accrualAddress, orderNum)
@@ -89,14 +87,13 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 }
 
 // getDataFromDB - получает из БД заказы со стратусом NEW и PROCESSING
-func (a *accrualClientStruct) getDataFromDB() []string{
+func (a *accrualClientStruct) getDataFromDB() []string {
 	orders, err := a.db.GetOrders()
 	if err != nil {
 		a.logger.Printf("get orders from DB: NEW, PROCESSING is error: %s", err)
 	}
 	return orders
 }
-
 
 // updateAccrual
 //			1. Получаем детальные данные о заказе по orderNum

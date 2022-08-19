@@ -16,12 +16,12 @@ import (
 )
 
 type Controller struct {
-	user         	auth.UserInterface
-	loginSession 	cache.UserSessionInterface
-	order        	processing.OrderInterface
-	balance 		withdraw.BalanceInterface
-	accrual 		accrual.AccrualInterface
-	logger  		*log.Logger
+	user         auth.UserInterface
+	loginSession cache.UserSessionInterface
+	order        processing.OrderInterface
+	balance      withdraw.BalanceInterface
+	accrual      accrual.AccrualInterface
+	logger       *log.Logger
 }
 
 // New Создаем новый контроллер, через который будем управлять хендлерами
@@ -118,7 +118,6 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	order := string(bodyData)
-
 
 	// Получаем пользователя по токену
 	token := r.Header.Get("Authorization")
@@ -387,5 +386,3 @@ func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
-
-

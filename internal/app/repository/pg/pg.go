@@ -57,7 +57,6 @@ func (p *pg) SchemeInit() error {
 		return fmt.Errorf("create table `app_order`: %s", errOrder)
 	}
 
-
 	_, errWithdrawList := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS withdraw_list (
     											id serial 		PRIMARY KEY,
     											order_num	 	VARCHAR (255) NOT NULL,
@@ -160,7 +159,6 @@ func (p *pg) AddAccrual(ctx context.Context, userID int) error {
 	return nil
 }
 
-
 // ListOrders Получить спосок заказов пользователя
 func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT number, status, accrual, uploaded_at 
@@ -209,7 +207,7 @@ func (p *pg) GetOrders() ([]string, error) {
 			log.Println(err)
 		}
 	}()
-	for rows.Next(){
+	for rows.Next() {
 		var order string
 		if err = rows.Scan(&order); err != nil {
 			log.Println(err)
@@ -236,7 +234,7 @@ func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, 
 	err = p.db.QueryRowContext(ctx, `SELECT accrual_current, accrual_total FROM app_user
 											WHERE id=$1 LIMIT 1`, userID).Scan(&currentPoint, &totalPoint)
 	if err != nil {
-		return 0, 0,  err
+		return 0, 0, err
 	}
 	return currentPoint, totalPoint, nil
 }

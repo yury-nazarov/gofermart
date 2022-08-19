@@ -22,8 +22,7 @@ func NewBalance(db pg.DBInterface, logger *log.Logger) *balanceStruct {
 	}
 }
 
-
-func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance, error){
+func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance, error) {
 	var balance Balance
 	// Делаем запрос в app_user, получаем: app_user.accrual_current app_user.accrual_total
 	//current, total, err := b.db.GetUserBalance(ctx, userID)
@@ -38,6 +37,7 @@ func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance
 	return balance, nil
 }
 
+// TODO: ДОлдна выполнятся атомарно
 func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNum string, sum float64) (err402 error, err422 error, err500 error) {
 	// Проверить номер заказа Луном
 	err := processing.CorrectOrderNumber(orderNum)
@@ -55,9 +55,9 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 		return fmt.Errorf("not enough points"), nil, nil
 	}
 
-
 	// Посчитать app_user.accrual_current - sum
 	newAccrualCurrent := accrualCurrent - sum
+
 	// записать в app_user.accrual_current
 	err = b.db.UpdateAccrual(ctx, newAccrualCurrent, accrualTotal, userID)
 	if err != nil {

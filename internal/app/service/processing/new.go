@@ -28,7 +28,6 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 		return false, false, nil, fmt.Errorf("orderNum: '%s', correctOrderNumber is wrong: %s", orderNum, err422), nil
 	}
 
-
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID
 	order, err := o.db.GetOrderByNumber(ctx, orderNum)
 
@@ -43,7 +42,6 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 		// ok202 - заказ принят в обработку
 		return false, true, nil, nil, nil
 	}
-
 
 	// err409 - пользователь уже добавил этот заказ
 	if order.Number == orderNum && order.UserID == userID {

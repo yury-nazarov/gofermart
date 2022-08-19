@@ -17,17 +17,15 @@ type AccrualInterface interface {
 
 // accrualClientStruct создает объект для работы с системой рассчета баллов
 type accrualClientStruct struct {
-	accrualAddress 	string
-	db 				pg.DBInterface
-	logger 			*log.Logger
-	ctx 			context.Context
+	accrualAddress string
+	db             pg.DBInterface
+	logger         *log.Logger
+	ctx            context.Context
 }
 
 // AccrualOrder для преобразования из JSON ответа accrual сервиса
 type AccrualOrder struct {
-	Number 	string 	`json:"order"`
-	Status 	string 	`json:"status"`
+	Number  string  `json:"order"`
+	Status  string  `json:"status"`
 	Accrual float64 `json:"accrual"`
 }
-
-

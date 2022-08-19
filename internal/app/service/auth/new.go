@@ -114,7 +114,6 @@ func newToken() string {
 	return fmt.Sprintf("%x", b)
 }
 
-
 // hashPassword считает хеш из пароля
 func hashPassword(password string) string {
 	hashPwd := md5.Sum([]byte(password))

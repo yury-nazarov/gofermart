@@ -5,19 +5,19 @@ import "context"
 // OrderDB структура модели заказа в БД.
 //		   Используется для описания таблицы в БД
 type OrderDB struct {
-	ID         int		`json:"-"`
-	UserID     int		`json:"-"`
-	Number     string   `json:"number"` 		// Номер заказа
-	Status     string  	`json:"status"`			// Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
-	Accrual    float64 	`json:"accrual"`		// Сколько начислено баллов этому заказу
-	UploadedAt string  	`json:"uploaded_at"`	// Дата загрузки в формате RFC3339
+	ID         int     `json:"-"`
+	UserID     int     `json:"-"`
+	Number     string  `json:"number"`      // Номер заказа
+	Status     string  `json:"status"`      // Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
+	Accrual    float64 `json:"accrual"`     // Сколько начислено баллов этому заказу
+	UploadedAt string  `json:"uploaded_at"` // Дата загрузки в формате RFC3339
 }
 
 // WithdrawDB структура для анмаршала JSON из HTTP Request
 type WithdrawDB struct {
-	Order 			string 		`json:"order"`
-	Sum 			float64 	`json:"sum"`
-	ProcessedAt 	string 		`json:"processed_at,omitempty"`
+	Order       string  `json:"order"`
+	Sum         float64 `json:"sum"`
+	ProcessedAt string  `json:"processed_at,omitempty"`
 }
 
 // DBInterface методы работы с релиационными БД

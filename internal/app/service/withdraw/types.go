@@ -20,7 +20,6 @@ type BalanceInterface interface {
 
 // Balance Для маршала json перед отправкой пользователю
 type Balance struct {
-	Current 	float64 `json:"current"`
-	Withdrawn 	float64 `json:"withdrawn"`
+	Current   float64 `json:"current"`
+	Withdrawn float64 `json:"withdrawn"`
 }
-

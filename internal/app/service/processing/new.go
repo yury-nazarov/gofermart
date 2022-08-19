@@ -21,13 +21,14 @@ func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
 }
 
 // Add - добавляет новый заказ
-func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err error) {
+func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err409, err422, err500 error) {
 	// err422 - Проверяем корректен ли номер заказа
 	// если номер заказа некорректный - отвечаем со статусом 422
-	err = CorrectOrderNumber(orderNum)
-	if err != nil {
-		return false, false, tools.NewError422(fmt.Sprintf("orderNum: '%s', correctOrderNumber is wrong: %s", orderNum, err))
+	err422 = CorrectOrderNumber(orderNum)
+	if err422 != nil {
+		return false, false, nil, fmt.Errorf("orderNum: '%s', correctOrderNumber is wrong: %s", orderNum, err422), nil
 	}
+
 
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID
 	order, err := o.db.GetOrderByNumber(ctx, orderNum)
@@ -35,26 +36,28 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	// Если произошла ошибка, то такого заказа нет и его можно создать
 	// ok202 - заказ принят в обработку
 	if err != nil {
-		err = o.db.AddOrder(ctx, orderNum, userID)
-		if err != nil {
-			return false, false,tools.NewError500(fmt.Sprintf("add order error %s", err))
+		err500 = o.db.AddOrder(ctx, orderNum, userID)
+		if err500 != nil {
+			// err500
+			return false, false, nil, nil, fmt.Errorf("add order error %s", err500)
 		}
 		// ok202 - заказ принят в обработку
-		return false, true, nil
+		return false, true, nil, nil, nil
 	}
+
 
 	// err409 - пользователь уже добавил этот заказ
 	if order.Number == orderNum && order.UserID == userID {
-		return true, false, nil
+		return true, false, nil, nil, nil
 	}
 
 	// err409 - Заказ создан другим пользователем
 	if order.Number == orderNum && order.UserID != userID {
-		return false, false, tools.NewError409("order exist for other user")
+		return false, false, fmt.Errorf("order exist for other user"), nil, nil
 	}
 
 	log.Printf("create order somfing wrong")
-	return false, false, tools.NewError500("create order somfing wrong")
+	return false, false, nil, nil, fmt.Errorf("create order somfing wrong")
 }
 
 // CorrectOrderNumber - проверяет корректность номера заказа

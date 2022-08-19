@@ -79,26 +79,21 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
 	user := auth.User{}
-	err := JSONError400(r, &user, c.logger)
-	if err != nil {
-		c.logger.Printf("JSON parsing error for login: %s, err: %s", user.Login, err)
+	err400 := JSONError400(r, &user, c.logger)
+	if err400 != nil {
+		c.logger.Printf("JSON parsing error for login: %s, err: %s", user.Login, err400)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	var err401 tools.Error401
-	var err500 tools.Error500
-
 	// Передаем в лой бизнес логики
-	token, err := c.user.SignIn(r.Context(), user.Login, user.Password)
-
-	if errors.As(err, &err401) {
-		c.logger.Printf("can't sign in login: %s, err: %s", user.Login, err)
+	token, err401, err500 := c.user.SignIn(r.Context(), user.Login, user.Password)
+	if err401 != nil {
+		c.logger.Printf("can't sign in login: %s, err: %s", user.Login, err400)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	if errors.As(err, &err500) {
-		c.logger.Print(err)
+	if err500 != nil {
+		c.logger.Print(err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -118,13 +113,14 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 //			500 — внутренняя ошибка сервера.
 func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные из HTTP приводим к строке номер заказа
-	bodyData, err := io.ReadAll(r.Body)
-	if err != nil {
-		c.logger.Printf("HTTP Body parsing error: %s", err)
+	bodyData, err400 := io.ReadAll(r.Body)
+	if err400 != nil {
+		c.logger.Printf("HTTP Body parsing error: %s", err400)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	order := string(bodyData)
+
 
 	// Получаем пользователя по токену
 	token := r.Header.Get("Authorization")
@@ -134,19 +130,15 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	//// пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
-	//if userID == 0 {
-	//	c.logger.Printf("can't authorisation userID: %d", userID)
-	//	w.WriteHeader(http.StatusUnauthorized)
-	//	return
-	//}
-
-	var err409 tools.Error409
-	var err422 tools.Error422
-	var err500 tools.Error500
+	// пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+	if userID == 0 {
+		c.logger.Printf("can't authorisation userID: %d", userID)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	// Пробуем добавить заказ
-	ok200, ok202, err := c.order.Add(r.Context(), order, userID)
+	ok200, ok202, err409, err422, err500 := c.order.Add(r.Context(), order, userID)
 	// номер заказа уже был загружен этим пользователем;
 	if ok200 {
 		c.logger.Printf("Order %s for userID %d is exist", order, userID)
@@ -160,25 +152,26 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// номер заказа уже был загружен другим пользователем;
-	if errors.As(err, &err409){
-		c.logger.Printf("order exist. %s", err)
+	if err409 != nil {
+		c.logger.Printf("order exist, err409: %s", err409)
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
 	// неверный формат номера заказа
-	if errors.As(err, &err422) {
-		c.logger.Printf("incorrect order format. err: %s", err)
+	if err422 != nil {
+		c.logger.Printf("incorrect order format, err4: %s", err422)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 	// внутренняя ошибка сервера
-	if errors.As(err, &err500) {
-		c.logger.Print(err)
+	if err500 != nil {
+		c.logger.Print(err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 }
+
 
 // GetOrders получение списка загруженных пользователем номеров заказов, статусов их обработки и информации о начислениях
 //			200 — успешная обработка запроса.
@@ -204,11 +197,19 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: НУжна эта проверка?
+	if userID == 0 { // пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+		c.logger.Printf("can't authorisation userID: %d", userID)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	// Пробуем получить заказы пользователя
 	var err204 tools.Error204
 	var err500 tools.Error500
-
+	//orders, err204, err500 := c.order.List(r.Context(), userID)
 	orders, err := c.order.List(r.Context(), userID)
+	//if err204 != nil {
 	if errors.As(err, &err204) {
 		c.logger.Printf("Order list is empty.  userID: %d, err: %s", userID, err)
 		w.WriteHeader(http.StatusNoContent)

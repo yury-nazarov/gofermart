@@ -22,5 +22,5 @@ type OrderInterface interface {
 	// Add Добавить заказ
 	Add(ctx context.Context, order string, userID int) (ok200, ok202 bool, err409, err422, err500 error)
 	// List Получить список заказов
-	List(ctx context.Context, userID int) (orders []pg.OrderDB, err204, err500 error)
+	List(ctx context.Context, userID int) (orders []pg.OrderDB, err error)
 }

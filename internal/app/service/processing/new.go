@@ -3,6 +3,7 @@ package processing
 import (
 	"context"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/pkg/tools"
 	"log"
 	"strconv"
 	"time"
@@ -74,20 +75,21 @@ func CorrectOrderNumber(orderNum string) error {
 }
 
 // List - список всех заказов пользователя
-func (o orderStruct) List(ctx context.Context, userID int) (orders []pg.OrderDB, err204, err500 error) {
+//func (o orderStruct) List(ctx context.Context, userID int) (orders []pg.OrderDB, err204, err500 error) {
+func (o orderStruct) List(ctx context.Context, userID int) (orders []pg.OrderDB, err error) {
 	// Делаем запрос в БД
-	orders, err := o.db.ListOrders(ctx, userID)
+	orders, err = o.db.ListOrders(ctx, userID)
 	// 	err500 - ошибка выполнения запроса
 	if err != nil {
-		return nil, nil, fmt.Errorf("listOrder SQL Error: %s", err)
+		return orders, tools.NewError500(fmt.Sprintf("listOrder SQL Error: %s", err))
 	}
 	// 	err204 - список пуст
 	if len(orders) == 0 {
-		return nil, fmt.Errorf("empty order list"), nil
+		return orders, tools.NewError204("empty order list")
 	}
 	orders = o.orderConvertData(orders)
 	// ok200
-	return orders, nil, nil
+	return orders, nil
 }
 
 // orderConvertData - конвертирует определенные поля заказа в нужный формат

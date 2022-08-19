@@ -203,29 +203,32 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Пробуем получить заказы пользователя
-	orders, err204, err500 := c.order.List(r.Context(), userID)
-	if err204 != nil {
-		c.logger.Printf("Order list is empty.  userID: %d, err: %s", userID, err204)
+	var err204 tools.Error204
+	var err500 tools.Error500
+
+	orders, err := c.order.List(r.Context(), userID)
+	if errors.As(err, &err204) {
+		c.logger.Printf("Order list is empty.  userID: %d, err: %s", userID, err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	if err500 != nil {
-		c.logger.Print(err500)
+	if errors.As(err, &err500) {
+		c.logger.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// Сериализуем JSON и отдаем пользователю
-	ordersJSON, err500 := json.Marshal(orders)
-	if err500 != nil {
+	ordersJSON, err := json.Marshal(orders)
+	if err != nil {
 		c.logger.Printf("can't json marshal. err: %s", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, err500 = w.Write(ordersJSON)
-	if err500 != nil {
+	_, err = w.Write(ordersJSON)
+	if err != nil {
 		c.logger.Printf("can't write JSON to client. err: %s", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

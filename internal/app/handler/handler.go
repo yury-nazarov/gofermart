@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/pkg/tools"
 	"io"
 	"log"
 	"net/http"
@@ -356,21 +358,25 @@ func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	withdrawList, err204, err500 := c.balance.Withdrawals(r.Context(), userID)
-	if err204 != nil {
+	var err204 tools.Error204
+	var err500 tools.Error500
+
+	withdrawList, err := c.balance.Withdrawals(r.Context(), userID)
+	if errors.As(err, &err204) {
 		c.logger.Printf("withdraw list for userID: %d is empty", userID)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	if err500 != nil {
+
+	if errors.As(err, &err500) {
 		c.logger.Printf("can't connection to cache of user session: err %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// Сериализуем JSON и отдаем пользователю
-	withdrawListJSON, err500 := json.Marshal(withdrawList)
-	if err500 != nil {
+	withdrawListJSON, err := json.Marshal(withdrawList)
+	if err != nil {
 		c.logger.Printf("can't json marshal. err: %s\n", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -378,8 +384,8 @@ func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
 	log.Println("withdrawList", withdrawList)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, err500 = w.Write(withdrawListJSON)
-	if err500 != nil {
+	_, err = w.Write(withdrawListJSON)
+	if err != nil {
 		c.logger.Printf("can't send json to client. error: %s", err500)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

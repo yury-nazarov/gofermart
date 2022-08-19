@@ -37,7 +37,6 @@ func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance
 	return balance, nil
 }
 
-// TODO: ДОлдна выполнятся атомарно
 func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNum string, sum float64) (err402 error, err422 error, err500 error) {
 	// Проверить номер заказа Луном
 	err := processing.CorrectOrderNumber(orderNum)
@@ -72,14 +71,14 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 	return nil, nil, nil
 }
 
-func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawList []pg.WithdrawDB, err204 error, err500 error) {
+func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawList []pg.WithdrawDB, err error) {
 	// Получить данные из таблицы withdraw_list
-	RawWithdrawList, err500 := b.db.GetWithdrawList(ctx, userID)
-	if err500 != nil {
-		return nil, nil, fmt.Errorf("can't get data from table 'withdraw_list'. err: %s", err500)
+	RawWithdrawList, err := b.db.GetWithdrawList(ctx, userID)
+	if err != nil {
+		return nil, tools.NewError500(err.Error())
 	}
 	if len(RawWithdrawList) == 0 {
-		return nil, fmt.Errorf(" 'withdraw_list' is empty'"), nil
+		return nil, tools.NewError204("'withdraw_list' is empty'")
 	}
 	// Преобразовать дату в RFC3339
 	for _, v := range RawWithdrawList {
@@ -95,5 +94,5 @@ func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawLi
 		WithdrawList = append(WithdrawList, withdraw)
 
 	}
-	return WithdrawList, nil, nil
+	return WithdrawList, nil
 }

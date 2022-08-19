@@ -15,7 +15,7 @@ type BalanceInterface interface {
 	// WithdrawBalance выводит средства со счета польователя
 	WithdrawBalance(ctx context.Context, userID int, order string, sum float64) (err402 error, err422 error, err500 error)
 	// Withdrawals - возвращает список списаний для пользователя
-	Withdrawals(ctc context.Context, userID int) (WithdrawList []pg.WithdrawDB, err204 error, err500 error)
+	Withdrawals(ctc context.Context, userID int) (WithdrawList []pg.WithdrawDB, err error)
 }
 
 // Balance Для маршала json перед отправкой пользователю

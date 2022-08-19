@@ -130,12 +130,12 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
-	if userID == 0 {
-		c.logger.Printf("can't authorisation userID: %d", userID)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	//// пользователь не авторизован (если по каким то причинам кеш с сессиями протух)
+	//if userID == 0 {
+	//	c.logger.Printf("can't authorisation userID: %d", userID)
+	//	w.WriteHeader(http.StatusUnauthorized)
+	//	return
+	//}
 
 	var err409 tools.Error409
 	var err422 tools.Error422

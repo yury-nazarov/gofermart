@@ -115,9 +115,9 @@ func (p *pg) NewUser(ctx context.Context, login string, hashPwd string) (int, er
 // UserIsValid - Делает SQL в БД если по login и хеш пароля есть запись - значит пользователь существует и валиден.
 func (p *pg) UserIsValid(ctx context.Context, login string, hashPwd string) (userID int, err error) {
 	err = p.db.QueryRowContext(ctx, `SELECT app_user.id FROM app_user
-											WHERE login=$1
-											AND password=$2
-											LIMIT 1`, login, hashPwd).Scan(&userID)
+                                           WHERE login=$1
+                                           AND password=$2
+                                           LIMIT 1`, login, hashPwd).Scan(&userID)
 	if err != nil {
 		return 0, fmt.Errorf("user not found: %s", err)
 	}
@@ -128,8 +128,8 @@ func (p *pg) UserIsValid(ctx context.Context, login string, hashPwd string) (use
 func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o OrderDB, err error) {
 	// Если записи нет то вернется {0 0 0  0 }
 	row := p.db.QueryRowContext(ctx, `SELECT id, user_id, number, status, accrual, uploaded_at 
-										   FROM app_order 
-										   WHERE number=$1 LIMIT 1`, orderNum)
+                                            FROM app_order 
+                                            WHERE number=$1 LIMIT 1`, orderNum)
 	err = row.Scan(&o.UserID, &o.UserID, &o.Number, &o.Status, &o.Accrual, &o.UploadedAt)
 	if err != nil {
 		return o, fmt.Errorf("order not found: %s", err)
@@ -140,7 +140,7 @@ func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o OrderDB, 
 // AddOrder добавит новый номер заказа
 func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 error) {
 	_, err500 = p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
-											 VALUES ($1, $2, $3, $4)`, orderNum, userID, "NEW", 0)
+                                             VALUES ($1, $2, $3, $4)`, orderNum, userID, "NEW", 0)
 	if err500 != nil {
 		return err500
 	}
@@ -150,7 +150,7 @@ func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 
 // AddAccrual добавляет запись в таблицу accrual
 func (p *pg) AddAccrual(ctx context.Context, userID int) error {
 	_, err500 := p.db.ExecContext(ctx, `INSERT INTO accrual (current_point, total_point, user_id) 
-											  VALUES (0, 0, $1)`, userID)
+                                              VALUES (0, 0, $1)`, userID)
 	if err500 != nil {
 		return err500
 	}
@@ -160,7 +160,7 @@ func (p *pg) AddAccrual(ctx context.Context, userID int) error {
 // ListOrders Получить спосок заказов пользователя
 func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT number, status, accrual, uploaded_at 
-				 	   							FROM app_order WHERE user_id=$1`, userID)
+                                               FROM app_order WHERE user_id=$1`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (p *pg) OrderStatusUpdate(ctx context.Context, orderNum string, status stri
 func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, totalPoint float64, err error) {
 
 	err = p.db.QueryRowContext(ctx, `SELECT accrual_current, accrual_total FROM app_user
-											WHERE id=$1 LIMIT 1`, userID).Scan(&currentPoint, &totalPoint)
+                                           WHERE id=$1 LIMIT 1`, userID).Scan(&currentPoint, &totalPoint)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -240,8 +240,8 @@ func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, 
 // UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
 func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error {
 	_, err := p.db.ExecContext(ctx, `UPDATE app_user
-										   SET accrual_current=$1, accrual_total=$2
-										   WHERE id=$3`, currentPoint, totalPoint, userID)
+                                           SET accrual_current=$1, accrual_total=$2
+                                           WHERE id=$3`, currentPoint, totalPoint, userID)
 	if err != nil {
 		return err
 	}
@@ -251,7 +251,7 @@ func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint
 // UpdateOrderAccrual - обновляет значения для app_order.accrual
 func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error {
 	_, err := p.db.ExecContext(ctx, `UPDATE app_order SET accrual=$1
-										   WHERE number=$2`, accrual, orderNumber)
+                                           WHERE number=$2`, accrual, orderNumber)
 	if err != nil {
 		return err
 	}
@@ -322,8 +322,8 @@ func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) 
 	var status string
 
 	err := p.db.QueryRowContext(ctx, `SELECT status FROM app_order 
-											WHERE number=$1 
-											AND user_id=$2 LIMIT 1`, orderNum, userID).Scan(&status)
+                                            WHERE number=$1 
+                                            AND user_id=$2 LIMIT 1`, orderNum, userID).Scan(&status)
 	if err != nil {
 		return "", err
 	}
@@ -333,7 +333,7 @@ func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) 
 // AddToWithdrawList - добавляет новую запись в журнал
 func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64, userID int) error {
 	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points, user_id) 
-										   VALUES ($1, $2, $3)`, orderNum, sumPoints, userID)
+                                           VALUES ($1, $2, $3)`, orderNum, sumPoints, userID)
 	if err != nil {
 		return err
 	}
@@ -343,9 +343,9 @@ func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints f
 // GetWithdrawList вернет список всех списаний для пользователя
 func (p *pg) GetWithdrawList(ctx context.Context, userID int) (withdrawList []WithdrawDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT order_num, sum_points, processed_at
-											   FROM withdraw_list
-											   WHERE user_id=$1
-											   ORDER BY processed_at`, userID)
+                                               FROM withdraw_list
+                                               WHERE user_id=$1
+                                               ORDER BY processed_at`, userID)
 	if err != nil {
 		return nil, err
 	}

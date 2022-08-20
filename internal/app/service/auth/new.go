@@ -5,11 +5,11 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
-	"github.com/yury-nazarov/gofermart/pkg/tools"
 	"log"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
+	"github.com/yury-nazarov/gofermart/pkg/tools"
 )
 
 type authLocalStruct struct {
@@ -27,19 +27,19 @@ func NewAuth(db pg.DBInterface, loginSession cache.UserSessionInterface, logger 
 }
 
 // SignUp регистрация пользователя
-func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (token string, err400 error, err500 error) {
+func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (token string, err error) {
 	ok, err := a.db.UserExist(ctx, login)
 	// Error500
 	if err != nil {
 		errString := fmt.Sprintf("UserExist sql querry error: %s", err)
 		a.logger.Print(errString)
-		return "", nil, fmt.Errorf("%s", errString)
+		return "", tools.NewError500(errString)
 	}
-	// Error409
+	// Error400
 	if ok {
 		errString := fmt.Sprintf("user exist: %s", err)
 		a.logger.Print(errString)
-		return "", fmt.Errorf("%s", errString), nil
+		return "", tools.NewError400(errString)
 	}
 
 	// Считаем хеш пароля
@@ -50,7 +50,7 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 	if err != nil {
 		errString := fmt.Sprintf("can't create new user. err: %s", err)
 		a.logger.Print(errString)
-		return "", fmt.Errorf("%s", errString), nil
+		return "", tools.NewError400(errString)
 	}
 
 	// Генерим Токен, добавляем токен и userID в сессию
@@ -59,11 +59,11 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 	if err != nil {
 		errString := fmt.Sprintf("can't init user session. err: %s", err)
 		a.logger.Print(errString)
-		return "", nil, fmt.Errorf("%s", errString)
+		return "", tools.NewError500(errString)
 	}
 
 	// Возвращаем токен для записи в заголовок
-	return token, nil, nil
+	return token, nil
 }
 
 // SignIn вход пользователя

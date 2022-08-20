@@ -43,7 +43,7 @@ func NewTestServer() *httptest.Server {
 	pgConfig := "host=localhost port=5432 user=gofermart password=gofermart dbname=gofermart sslmode=disable connect_timeout=5"
 
 	// Инициируем БД и создаем соединение
-	db, err := pg.NewDB(pg.DBConfig{PGConnStr: pgConfig}, logger)
+	db, err := pg.NewDB(pgConfig, logger)
 	if err != nil {
 		log.Fatal(err)
 	}

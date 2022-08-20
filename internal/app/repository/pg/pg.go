@@ -239,26 +239,26 @@ func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, 
 	return currentPoint, totalPoint, nil
 }
 
-//// UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
-//func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error {
-//	_, err := p.db.ExecContext(ctx, `UPDATE app_user
-//										   SET accrual_current=$1, accrual_total=$2
-//										   WHERE id=$3`, currentPoint, totalPoint, userID)
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
+// UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
+func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error {
+	_, err := p.db.ExecContext(ctx, `UPDATE app_user
+										   SET accrual_current=$1, accrual_total=$2
+										   WHERE id=$3`, currentPoint, totalPoint, userID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
-//// UpdateOrderAccrual - обновляет значения для app_order.accrual
-//func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error {
-//	_, err := p.db.ExecContext(ctx, `UPDATE app_order SET accrual=$1
-//										   WHERE number=$2`, accrual, orderNumber)
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
+// UpdateOrderAccrual - обновляет значения для app_order.accrual
+func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error {
+	_, err := p.db.ExecContext(ctx, `UPDATE app_order SET accrual=$1
+										   WHERE number=$2`, accrual, orderNumber)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // UpdateAccrualTransaction - обновить значения таблицы: accrual.current_point, accrual.total_point
 func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64, currentPoint float64, totalPoint float64) error {
@@ -295,9 +295,11 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	}
 
 	// Применяем
-	return tx.Commit()
-
-
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("transaction commit err: %s", err)
+	}
+	return nil
 }
 
 // GetOrderByUserID проверяем налицие заказа для конкретного пользователя

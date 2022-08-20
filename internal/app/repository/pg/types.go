@@ -42,11 +42,15 @@ type DBInterface interface {
 	OrderStatusUpdate(ctx context.Context, orderNum string, status string) error
 	//GetAccrual получить текущие значения таблицы: app_user.accrual_current, app_user.accrual_total
 	GetAccrual(ctx context.Context, userID int) (currentPoint float64, totalPoint float64, err error)
+
+	UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error
+
 	// UpdateAccrualTransaction - обновить значения таблицы: accrual.current_point, accrual.total_point
-	//UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error
 	UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64, currentPoint float64, totalPoint float64) error
+
 	// UpdateOrderAccrual - обновляет значения для app_order.accrual
 	UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error
+
 	// GetOrderByUserID проверяем налицие заказа для конкретного пользователя
 	GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error)
 	// AddToWithdrawList - добавляет новую запись в журнал

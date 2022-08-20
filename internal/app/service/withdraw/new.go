@@ -61,11 +61,19 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 
 	// Атомарно применяем изменения в БД
 	//err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum, newAccrualCurrent, accrualTotal)
+
+
+
 	err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum)
 	if err != nil {
-		errMgg := fmt.Sprintf("can't update accrual. err: %s", err)
-		return tools.NewError500(errMgg)
+		// Транзитом прокидываем 402 и 500 на верх
+		return err
 	}
+
+	//if err != nil {
+	//	errMgg := fmt.Sprintf("can't update accrual. err: %s", err)
+	//	return tools.NewError500(errMgg)
+	//}
 	return nil
 }
 

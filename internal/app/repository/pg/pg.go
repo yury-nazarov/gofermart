@@ -266,7 +266,8 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	// Открываем транзакцию
 	tx, err := p.db.Begin()
 	if err != nil {
-		return fmt.Errorf("can't open transaction. err: %s", err)
+		errMsg := fmt.Sprintf("can't open transaction. err: %s", err)
+		return tools.NewError500(errMsg)
 	}
 	defer tx.Rollback()
 
@@ -275,7 +276,8 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	var accrualTotal float64
 	err = tx.QueryRowContext(ctx, `SELECT accrual_current, accrual_total FROM app_user WHERE id=$1 LIMIT 1`, userID).Scan(&accrualCurrent, accrualTotal)
 	if err != nil {
-		return fmt.Errorf("transaction select user accrual has err: %s", err)
+		errMsg := fmt.Sprintf("transaction select user accrual has err: %s", err)
+		return tools.NewError500(errMsg)
 	}
 
 	// err402: Не достаточно средств
@@ -290,26 +292,30 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	//updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1, accrual_total=$2 WHERE id=$3")
 	updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1 WHERE id=$2")
 	if err != nil {
-		return fmt.Errorf("transaction statment updateAccrual has err: %s", err)
+		errMsg := fmt.Sprintf("transaction statment updateAccrual has err: %s", err)
+		return tools.NewError500(errMsg)
 	}
 	defer updateAccrual.Close()
 
 	// Готовим стейтмент для апдейта withdraw_list
 	updateWithdrawList, err := tx.PrepareContext(ctx, "INSERT INTO withdraw_list (order_num, sum_points, user_id) VALUES ($1, $2, $3)")
 	if err != nil {
-		return fmt.Errorf("transaction statment updateWithdrawList has err: %s", err)
+		errMsg := fmt.Sprintf("transaction statment updateWithdrawList has err: %s", err)
+		return tools.NewError500(errMsg)
 	}
 
 	// Выполянем
 	_, err = updateAccrual.ExecContext(ctx, newAccrualCurrent, userID)
 	if err != nil {
-		return fmt.Errorf("transaction execute updateAccrual has err: %s", err)
+		errMsg := fmt.Sprintf("transaction execute updateAccrual has err: %s", err)
+		return tools.NewError500(errMsg)
 	}
 
 	// Выполянем
 	_, err = updateWithdrawList.ExecContext(ctx, orderNum, sum, userID)
 	if err != nil {
-		return fmt.Errorf("transaction execute updateOrderAccrual has err: %s", err)
+		errMsg := fmt.Sprintf("transaction execute updateOrderAccrual has err: %s", err)
+		return tools.NewError500(errMsg)
 	}
 
 	// Применяем

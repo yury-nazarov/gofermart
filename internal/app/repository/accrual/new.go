@@ -102,7 +102,6 @@ func (a *accrualClientStruct) getDataFromDB() []string {
 //			   сколько баллов получено за конкретный заказ.
 //			3. Проверяем если статус заказа вернувшийся от системы рассчета боллов: INVALID, PROCESSING, REGISTERED
 //			   Если статус иной, то обновляем статус для заказа и идем дальше.
-//			TODO: Возможно это все надо сделать транзакцией?
 func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accrual float64) error {
 	a.logger.Printf("begin processed order: %s", orderNum)
 	//// Получить данные о текущем заказе и пользователе из БД

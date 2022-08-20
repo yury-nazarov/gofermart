@@ -1,6 +1,5 @@
 package tools
 
-
 // Error422 - не верный формат заказа
 type Error422 struct {
 	message string

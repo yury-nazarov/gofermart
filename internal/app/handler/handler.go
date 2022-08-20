@@ -126,7 +126,6 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	}
 	order := string(bodyData)
 
-
 	// Получаем пользователя по токену
 	token := r.Header.Get("Authorization")
 	userID, err := c.loginSession.GetUserIDByToken(token)
@@ -324,7 +323,7 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusPaymentRequired)
 		return
 	}
-	if errors.As(err, &err422){
+	if errors.As(err, &err422) {
 		c.logger.Printf("order number wrong: err %s", err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return

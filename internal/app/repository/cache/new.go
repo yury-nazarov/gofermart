@@ -8,7 +8,7 @@ import (
 type userSessionStruct struct {
 	// map[Token]UserID
 	data map[string]int
-	mu sync.RWMutex
+	mu   sync.RWMutex
 }
 
 // NewLoginCache - Создает объект для хранения в RAM залогиненых пользователей и токенов для них

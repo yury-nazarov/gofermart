@@ -14,4 +14,3 @@ func NewError409(message string) *Error409 {
 		message: message,
 	}
 }
-

@@ -14,4 +14,3 @@ func NewError400(message string) *Error400 {
 		message: message,
 	}
 }
-

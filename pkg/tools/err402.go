@@ -1,6 +1,5 @@
 package tools
 
-
 // Error402 - не достаточно средств
 type Error402 struct {
 	message string
@@ -15,4 +14,3 @@ func NewError402(message string) *Error402 {
 		message: message,
 	}
 }
-

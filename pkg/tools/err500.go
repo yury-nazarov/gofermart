@@ -1,6 +1,5 @@
 package tools
 
-
 // Error500 - ошибка сервера
 type Error500 struct {
 	message string

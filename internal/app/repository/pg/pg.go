@@ -333,7 +333,6 @@ func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) 
 	return status, nil
 }
 
-
 // AddToWithdrawList - добавляет новую запись в журнал
 func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64, userID int) error {
 	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points, user_id) 

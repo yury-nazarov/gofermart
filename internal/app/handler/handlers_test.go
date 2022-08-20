@@ -2,8 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"io/ioutil"
 	"log"
 	"net"
@@ -12,7 +10,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"github.com/yury-nazarov/gofermart/internal/app/service/withdraw"
@@ -43,7 +43,10 @@ func NewTestServer() *httptest.Server {
 	pgConfig := "host=localhost port=5432 user=gofermart password=gofermart dbname=gofermart sslmode=disable connect_timeout=5"
 
 	// Инициируем БД и создаем соединение
-	db := pg.NewDB(pg.DBConfig{PGConnStr: pgConfig}, logger)
+	db, err := pg.NewDB(pg.DBConfig{PGConnStr: pgConfig}, logger)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Инициируем loginCache для проверки сессии пользователя
 	// TODO: 1. Переименовать в NewLoginSession().

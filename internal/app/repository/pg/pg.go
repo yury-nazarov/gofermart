@@ -260,7 +260,7 @@ func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumbe
 	return nil
 }
 
-// UpdateAccrualTransaction - обновить значения таблицы: accrual.current_point, accrual.total_point
+// UpdateAccrualTransaction - обновить значения таблиц: app_user, app_order
 func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64, currentPoint float64, totalPoint float64) error {
 	// Открываем транзакцию
 	tx, err := p.db.Begin()
@@ -276,10 +276,11 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	}
 	defer updateAccrual.Close()
 
-	// Готовим стейтмент для апдейта app_order
-	updateOrderAccrual, err := tx.PrepareContext(ctx, "UPDATE app_order SET accrual=$1 WHERE number=$2")
+	// Готовим стейтмент для апдейта withdraw_list
+	// `INSERT INTO withdraw_list (order_num, sum_points, user_id)   VALUES ($1, $2, $3)`, orderNum, sumPoints, userID)
+	updateWithdrawList, err := tx.PrepareContext(ctx, "INSERT INTO withdraw_list (order_num, sum_points, user_id) VALUES ($1, $2, $3)")
 	if err != nil {
-		return fmt.Errorf("transaction statment updateOrderAccrual has err: %s", err)
+		return fmt.Errorf("transaction statment updateWithdrawList has err: %s", err)
 	}
 
 	// Выполянем
@@ -289,9 +290,9 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	}
 
 	// Выполянем
-	_, err = updateOrderAccrual.ExecContext(ctx, sum, orderNum)
+	_, err = updateWithdrawList.ExecContext(ctx, orderNum, sum, userID)
 	if err != nil {
-		return fmt.Errorf("transaction execute updateAccrual has err: %s", err)
+		return fmt.Errorf("transaction execute updateOrderAccrual has err: %s", err)
 	}
 
 	// Применяем
@@ -315,6 +316,7 @@ func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) 
 	return status, nil
 }
 
+// TODO
 // AddToWithdrawList - добавляет новую запись в журнал
 func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64, userID int) error {
 	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points, user_id) 

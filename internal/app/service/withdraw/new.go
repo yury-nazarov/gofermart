@@ -41,13 +41,15 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 	// Проверить номер заказа Луном
 	err := processing.CorrectOrderNumber(orderNum)
 	if err != nil {
-		return tools.NewError422(fmt.Sprintf("incorrect order number '%s'. err: %s", orderNum, err.Error()))
+		errMgg := fmt.Sprintf("incorrect order number '%s'. err: %s", orderNum, err.Error())
+		return tools.NewError422(errMgg)
 	}
 
 	// Получить текущее значение app_user.accrual_current
 	accrualCurrent, accrualTotal, err := b.db.GetAccrual(ctx, userID)
 	if err != nil {
-		return tools.NewError500(fmt.Sprintf("can't get accrual. err: %s", err))
+		errMgg := fmt.Sprintf("can't get accrual. err: %s", err)
+		return tools.NewError500(errMgg)
 	}
 	// err402: Не достаточно средств
 	if accrualCurrent < sum {
@@ -60,13 +62,15 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 	// записать в app_user.accrual_current
 	err = b.db.UpdateAccrual(ctx, newAccrualCurrent, accrualTotal, userID)
 	if err != nil {
-		return tools.NewError500(fmt.Sprintf("can't update accrual. err: %s", err))
+		errMgg := fmt.Sprintf("can't update accrual. err: %s", err)
+		return tools.NewError500(errMgg)
 	}
 
 	// записать в withdraw_list
 	err = b.db.AddToWithdrawList(ctx, orderNum, sum, userID)
 	if err != nil {
-		return tools.NewError500(fmt.Sprintf("can't insert to withdraw_list. err: %s", err))
+		errMgg := fmt.Sprintf("can't insert to withdraw_list. err: %s", err)
+		return tools.NewError500(errMgg)
 	}
 	return nil
 }

@@ -10,7 +10,7 @@ func (e Error402) Error() string {
 	return e.message
 }
 
-func NewError402(message string) error {
+func NewError402(message string) *Error402 {
 	return &Error402{
 		message: message,
 	}

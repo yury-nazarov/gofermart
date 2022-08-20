@@ -9,7 +9,7 @@ func (e Error400) Error() string {
 	return e.message
 }
 
-func NewError400(message string) error {
+func NewError400(message string) *Error400 {
 	return &Error400{
 		message: message,
 	}

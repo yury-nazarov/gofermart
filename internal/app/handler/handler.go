@@ -210,8 +210,8 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Пробуем получить заказы пользователя
-	var err204 tools.Error204
-	var err500 tools.Error500
+	var err204 *tools.Error204
+	var err500 *tools.Error500
 	//orders, err204, err500 := c.order.List(r.Context(), userID)
 	orders, err := c.order.List(r.Context(), userID)
 	//if err204 != nil {
@@ -324,9 +324,9 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Выводим средства со счета пользователя: app_user.current - sum
-	var err402 tools.Error402
-	var err422 tools.Error422
-	var err500 tools.Error500
+	var err402 *tools.Error402
+	var err422 *tools.Error422
+	var err500 *tools.Error500
 	//err402, err422, err500 := c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
 	err = c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
 	//if err402 != nil {
@@ -374,8 +374,8 @@ func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err204 tools.Error204
-	var err500 tools.Error500
+	var err204 *tools.Error204
+	var err500 *tools.Error500
 
 	withdrawList, err := c.balance.Withdrawals(r.Context(), userID)
 	if errors.As(err, &err204) {

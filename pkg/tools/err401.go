@@ -10,7 +10,7 @@ func (e Error401) Error() string {
 	return e.message
 }
 
-func NewError401(message string) error {
+func NewError401(message string) *Error401 {
 	return &Error401{
 		message: message,
 	}

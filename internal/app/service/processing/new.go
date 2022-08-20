@@ -80,13 +80,13 @@ func CorrectOrderNumber(orderNum string) error {
 }
 
 // List - список всех заказов пользователя
-//func (o orderStruct) List(ctx context.Context, userID int) (orders []pg.OrderDB, err204, err500 error) {
 func (o orderStruct) List(ctx context.Context, userID int) (orders []pg.OrderDB, err error) {
 	// Делаем запрос в БД
 	orders, err = o.db.ListOrders(ctx, userID)
 	// 	err500 - ошибка выполнения запроса
 	if err != nil {
-		return orders, tools.NewError500(fmt.Sprintf("listOrder SQL Error: %s", err))
+		errMsg := fmt.Sprintf("listOrder SQL Error: %s", err)
+		return orders, tools.NewError500(errMsg)
 	}
 	// 	err204 - список пуст
 	if len(orders) == 0 {
@@ -103,7 +103,6 @@ func (o orderStruct) orderConvertData(orderList []pg.OrderDB) (clearOrderList []
 	log.Println("Order list", orderList)
 	for _, order := range orderList {
 
-		// TODO: По хорошему нужно из конфига, но этого нет в ТЗ :(
 		// Устанавливаем тайм зону
 		loc, err := time.LoadLocation("Europe/Moscow")
 		if err != nil {
@@ -119,7 +118,6 @@ func (o orderStruct) orderConvertData(orderList []pg.OrderDB) (clearOrderList []
 		// Форматируем в: "2020-12-10T15:15:45+03:00"
 		order.UploadedAt = newOrderTime.In(loc).Format("2006-01-2T15:04:05Z07:00")
 
-		// TODO: Пока не переложил в новый слайс, новое значение не возвращалось. Разобратся в чем проблема!
 		// Добавляем результат в новый слайс
 		clearOrderList = append(clearOrderList, order)
 	}

@@ -95,10 +95,6 @@ func (p *pg) UserExist(ctx context.Context, login string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("SQL Query Error: %s", err)
 	}
-	// Запись есть но логин не совпадает
-	if login == loginFromDB {
-		return true, nil
-	}
 	// Default
 	return false, nil
 

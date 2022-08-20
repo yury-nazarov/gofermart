@@ -137,9 +137,9 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	var err409 tools.Error409
-	var err422 tools.Error422
-	var err500 tools.Error500
+	var err409 *tools.Error409
+	var err422 *tools.Error422
+	var err500 *tools.Error500
 	// Пробуем добавить заказ
 	ok200, ok202, err := c.order.Add(r.Context(), order, userID)
 	// номер заказа уже был загружен этим пользователем;

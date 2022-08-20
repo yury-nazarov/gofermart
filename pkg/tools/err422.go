@@ -10,7 +10,7 @@ func (e Error422) Error() string {
 	return e.message
 }
 
-func NewError422(message string) error {
+func NewError422(message string) *Error422 {
 	return &Error422{
 		message: message,
 	}

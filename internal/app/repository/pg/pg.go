@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/yury-nazarov/gofermart/pkg/tools"
 	"log"
 )
 
@@ -261,7 +262,7 @@ func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumbe
 }
 
 // UpdateAccrualTransaction - обновить значения таблиц: app_user, app_order
-func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64, currentPoint float64, totalPoint float64) error {
+func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64) error {
 	// Открываем транзакцию
 	tx, err := p.db.Begin()
 	if err != nil {
@@ -269,8 +270,25 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	}
 	defer tx.Rollback()
 
+	// Получаем данные из БД о текущем балансе пользователя
+	var accrualCurrent float64
+	var accrualTotal float64
+	err = tx.QueryRowContext(ctx, `SELECT accrual_current, accrual_total FROM app_user WHERE id=$1 LIMIT 1`, userID).Scan(&accrualCurrent, accrualTotal)
+	if err != nil {
+		return fmt.Errorf("transaction select user accrual has err: %s", err)
+	}
+
+	// err402: Не достаточно средств
+	if accrualCurrent < sum {
+		return tools.NewError402("not enough points")
+	}
+
+	// Посчитать app_user.accrual_current - sum
+	newAccrualCurrent := accrualCurrent - sum
+
 	// Готовим стейтмент для апдейта app_user
-	updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1, accrual_total=$2 WHERE id=$3")
+	//updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1, accrual_total=$2 WHERE id=$3")
+	updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1 WHERE id=$2")
 	if err != nil {
 		return fmt.Errorf("transaction statment updateAccrual has err: %s", err)
 	}
@@ -283,7 +301,7 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	}
 
 	// Выполянем
-	_, err = updateAccrual.ExecContext(ctx, currentPoint, totalPoint, userID)
+	_, err = updateAccrual.ExecContext(ctx, newAccrualCurrent, userID)
 	if err != nil {
 		return fmt.Errorf("transaction execute updateAccrual has err: %s", err)
 	}
@@ -297,6 +315,44 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	// Применяем
 	return tx.Commit()
 }
+
+//// UpdateAccrualTransaction - обновить значения таблиц: app_user, app_order
+//func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64, currentPoint float64, totalPoint float64) error {
+//	// Открываем транзакцию
+//	tx, err := p.db.Begin()
+//	if err != nil {
+//		return fmt.Errorf("can't open transaction. err: %s", err)
+//	}
+//	defer tx.Rollback()
+//
+//	// Готовим стейтмент для апдейта app_user
+//	updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1, accrual_total=$2 WHERE id=$3")
+//	if err != nil {
+//		return fmt.Errorf("transaction statment updateAccrual has err: %s", err)
+//	}
+//	defer updateAccrual.Close()
+//
+//	// Готовим стейтмент для апдейта withdraw_list
+//	updateWithdrawList, err := tx.PrepareContext(ctx, "INSERT INTO withdraw_list (order_num, sum_points, user_id) VALUES ($1, $2, $3)")
+//	if err != nil {
+//		return fmt.Errorf("transaction statment updateWithdrawList has err: %s", err)
+//	}
+//
+//	// Выполянем
+//	_, err = updateAccrual.ExecContext(ctx, currentPoint, totalPoint, userID)
+//	if err != nil {
+//		return fmt.Errorf("transaction execute updateAccrual has err: %s", err)
+//	}
+//
+//	// Выполянем
+//	_, err = updateWithdrawList.ExecContext(ctx, orderNum, sum, userID)
+//	if err != nil {
+//		return fmt.Errorf("transaction execute updateOrderAccrual has err: %s", err)
+//	}
+//
+//	// Применяем
+//	return tx.Commit()
+//}
 
 // GetOrderByUserID проверяем налицие заказа для конкретного пользователя
 func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error) {

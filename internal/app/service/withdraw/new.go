@@ -46,21 +46,22 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 	}
 
 	// Получить текущее значение app_user.accrual_current
-	accrualCurrent, accrualTotal, err := b.db.GetAccrual(ctx, userID)
-	if err != nil {
-		errMgg := fmt.Sprintf("can't get accrual. err: %s", err)
-		return tools.NewError500(errMgg)
-	}
-	// err402: Не достаточно средств
-	if accrualCurrent < sum {
-		return tools.NewError402("not enough points")
-	}
+	//accrualCurrent, accrualTotal, err := b.db.GetAccrual(ctx, userID)
+	//if err != nil {
+	//	errMgg := fmt.Sprintf("can't get accrual. err: %s", err)
+	//	return tools.NewError500(errMgg)
+	//}
+	//// err402: Не достаточно средств
+	//if accrualCurrent < sum {
+	//	return tools.NewError402("not enough points")
+	//}
 
-	// Посчитать app_user.accrual_current - sum
-	newAccrualCurrent := accrualCurrent - sum
+	//// Посчитать app_user.accrual_current - sum
+	//newAccrualCurrent := accrualCurrent - sum
 
 	// Атомарно применяем изменения в БД
-	err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum, newAccrualCurrent, accrualTotal)
+	//err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum, newAccrualCurrent, accrualTotal)
+	err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum)
 	if err != nil {
 		errMgg := fmt.Sprintf("can't update accrual. err: %s", err)
 		return tools.NewError500(errMgg)

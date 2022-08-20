@@ -46,7 +46,8 @@ type DBInterface interface {
 	UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error
 
 	// UpdateAccrualTransaction - обновить значения таблицы: accrual.current_point, accrual.total_point
-	UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64, currentPoint float64, totalPoint float64) error
+	UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64) error
+	//UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64, currentPoint float64, totalPoint float64) error
 
 	// UpdateOrderAccrual - обновляет значения для app_order.accrual
 	UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error

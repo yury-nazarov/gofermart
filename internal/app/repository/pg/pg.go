@@ -17,15 +17,15 @@ type pg struct {
 }
 
 // New Иницирует подключение к Postgres
-func New(connStr string) *pg {
+func New(connStr string) (*pg, error) {
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
-		log.Fatalf("sql.Open is err: %s", err)
+		return nil, fmt.Errorf("sql.Open is err: %s", err)
 	}
 	dbConnect := &pg{
 		db: db,
 	}
-	return dbConnect
+	return dbConnect, nil
 }
 
 // SchemeInit создает схему БД если ее еще нет

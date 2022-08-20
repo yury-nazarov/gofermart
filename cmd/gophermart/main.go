@@ -25,7 +25,10 @@ func main() {
 	serverAddress, accrualAddress, pgConfig := initParams(logger)
 
 	// Инициируем БД и создаем соединение
-	db := pg.NewDB(pg.DBConfig{PGConnStr: pgConfig}, logger)
+	db, err := pg.NewDB(pg.DBConfig{PGConnStr: pgConfig}, logger)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Инициируем loginCache для проверки сессии пользователя
 	loginSession := cache.NewLoginCache()

@@ -5,6 +5,7 @@ package pg
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/yury-nazarov/gofermart/pkg/tools"
@@ -88,7 +89,7 @@ func (p *pg) UserExist(ctx context.Context, login string) (bool, error) {
 	var loginFromDB string
 	err := p.db.QueryRowContext(ctx, `SELECT login FROM app_user WHERE login=$1 LIMIT 1`, login).Scan(&loginFromDB)
 	// Записи нет в БД
-	if fmt.Sprintf("%s", err) == "sql: no rows in result set" {
+	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
 	// Обрабатываем прочие ошибки

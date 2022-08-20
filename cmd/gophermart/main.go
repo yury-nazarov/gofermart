@@ -25,7 +25,7 @@ func main() {
 	serverAddress, accrualAddress, pgConfig := initParams(logger)
 
 	// Инициируем БД и создаем соединение
-	db, err := pg.NewDB(pg.DBConfig{PGConnStr: pgConfig}, logger)
+	db, err := pg.NewDB(pgConfig, logger)
 	if err != nil {
 		log.Fatal(err)
 	}

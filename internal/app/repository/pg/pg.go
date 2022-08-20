@@ -269,17 +269,17 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	}
 	defer tx.Rollback()
 
-	// Готовим стейтмент для апдейта
+	// Готовим стейтмент для апдейта app_user
 	updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1, accrual_total=$2 WHERE id=$3")
 	if err != nil {
 		return fmt.Errorf("transaction statment updateAccrual has err: %s", err)
 	}
 	defer updateAccrual.Close()
 
-	// Готовим стейтмент для инсерта
+	// Готовим стейтмент для апдейта app_order
 	updateOrderAccrual, err := tx.PrepareContext(ctx, "UPDATE app_order SET accrual=$1 WHERE number=$2")
 	if err != nil {
-		fmt.Errorf("transaction statment updateOrderAccrual has err: %s", err)
+		return fmt.Errorf("transaction statment updateOrderAccrual has err: %s", err)
 	}
 
 	// Выполянем

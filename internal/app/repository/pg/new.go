@@ -13,7 +13,6 @@ import (
 		- Прочие взаиможействия с источниками данных
 */
 
-
 // NewDB возвращет ссылку на подключение к БД, инициируем схему.
 func NewDB(conf string, logger *log.Logger) (*pg, error) {
 	if len(conf) != 0 {
@@ -34,7 +33,6 @@ func NewDB(conf string, logger *log.Logger) (*pg, error) {
 	}
 	return nil, fmt.Errorf("DB not selected")
 }
-
 
 //// NewDB возвращет ссылку на подключение к БД, инициируем схему.
 //func NewDB(conf DBConfig, logger *log.Logger) (DBInterface, error) {

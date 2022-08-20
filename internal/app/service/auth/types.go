@@ -6,7 +6,8 @@ type UserInterface interface {
 	// SignUp Регистрирует пользователя
 	SignUp(ctx context.Context, login string, password string) (token string, err400 error, err500 error)
 	// SignIn Авторизует пользователя
-	SignIn(ctx context.Context, login string, password string) (token string, err401 error, err500 error)
+	//SignIn(ctx context.Context, login string, password string) (token string, err401 error, err500 error)
+	SignIn(ctx context.Context, login string, password string) (token string, err error)
 	// IsUserSignIn Проверяет авторизован ли пользователь
 	IsUserSignIn(token string) (userID int, err500 error)
 }

@@ -45,8 +45,6 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 		return tools.NewError422(errMgg)
 	}
 
-	// 1. Объявляем транзацию
-
 	// Получить текущее значение app_user.accrual_current
 	accrualCurrent, accrualTotal, err := b.db.GetAccrual(ctx, userID)
 	if err != nil {
@@ -61,26 +59,12 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 	// Посчитать app_user.accrual_current - sum
 	newAccrualCurrent := accrualCurrent - sum
 
-	// Атомарно вносим изменения в БД
+	// Атомарно применяем изменения в БД
 	err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum, newAccrualCurrent, accrualTotal)
 	if err != nil {
 		errMgg := fmt.Sprintf("can't update accrual. err: %s", err)
 		return tools.NewError500(errMgg)
 	}
-
-	//// записать в app_user.accrual_current
-	//err = b.db.UpdateAccrual(ctx, newAccrualCurrent, accrualTotal, userID)
-	//if err != nil {
-	//	errMgg := fmt.Sprintf("can't update accrual. err: %s", err)
-	//	return tools.NewError500(errMgg)
-	//}
-	//
-	//// записать в withdraw_list
-	//err = b.db.AddToWithdrawList(ctx, orderNum, sum, userID)
-	//if err != nil {
-	//	errMgg := fmt.Sprintf("can't insert to withdraw_list. err: %s", err)
-	//	return tools.NewError500(errMgg)
-	//}
 	return nil
 }
 

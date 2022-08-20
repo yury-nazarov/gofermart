@@ -288,7 +288,6 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	newAccrualCurrent := accrualCurrent - sum
 
 	// Готовим стейтмент для апдейта app_user
-	//updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1, accrual_total=$2 WHERE id=$3")
 	updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1 WHERE id=$2")
 	if err != nil {
 		errMsg := fmt.Sprintf("transaction statment updateAccrual has err: %s", err)
@@ -321,44 +320,6 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	return tx.Commit()
 }
 
-//// UpdateAccrualTransaction - обновить значения таблиц: app_user, app_order
-//func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64, currentPoint float64, totalPoint float64) error {
-//	// Открываем транзакцию
-//	tx, err := p.db.Begin()
-//	if err != nil {
-//		return fmt.Errorf("can't open transaction. err: %s", err)
-//	}
-//	defer tx.Rollback()
-//
-//	// Готовим стейтмент для апдейта app_user
-//	updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1, accrual_total=$2 WHERE id=$3")
-//	if err != nil {
-//		return fmt.Errorf("transaction statment updateAccrual has err: %s", err)
-//	}
-//	defer updateAccrual.Close()
-//
-//	// Готовим стейтмент для апдейта withdraw_list
-//	updateWithdrawList, err := tx.PrepareContext(ctx, "INSERT INTO withdraw_list (order_num, sum_points, user_id) VALUES ($1, $2, $3)")
-//	if err != nil {
-//		return fmt.Errorf("transaction statment updateWithdrawList has err: %s", err)
-//	}
-//
-//	// Выполянем
-//	_, err = updateAccrual.ExecContext(ctx, currentPoint, totalPoint, userID)
-//	if err != nil {
-//		return fmt.Errorf("transaction execute updateAccrual has err: %s", err)
-//	}
-//
-//	// Выполянем
-//	_, err = updateWithdrawList.ExecContext(ctx, orderNum, sum, userID)
-//	if err != nil {
-//		return fmt.Errorf("transaction execute updateOrderAccrual has err: %s", err)
-//	}
-//
-//	// Применяем
-//	return tx.Commit()
-//}
-
 // GetOrderByUserID проверяем налицие заказа для конкретного пользователя
 func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error) {
 	var status string
@@ -372,7 +333,7 @@ func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) 
 	return status, nil
 }
 
-// TODO
+
 // AddToWithdrawList - добавляет новую запись в журнал
 func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints float64, userID int) error {
 	_, err := p.db.ExecContext(ctx, `INSERT INTO withdraw_list (order_num, sum_points, user_id) 

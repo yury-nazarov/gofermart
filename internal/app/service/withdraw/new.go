@@ -25,7 +25,6 @@ func NewBalance(db pg.DBInterface, logger *log.Logger) *balanceStruct {
 func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance, error) {
 	var balance Balance
 	// Делаем запрос в app_user, получаем: app_user.accrual_current app_user.accrual_total
-	//current, total, err := b.db.GetUserBalance(ctx, userID)
 	current, total, err := b.db.GetAccrual(ctx, userID)
 	if err != nil {
 		return balance, err
@@ -45,35 +44,12 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 		return tools.NewError422(errMgg)
 	}
 
-	// Получить текущее значение app_user.accrual_current
-	//accrualCurrent, accrualTotal, err := b.db.GetAccrual(ctx, userID)
-	//if err != nil {
-	//	errMgg := fmt.Sprintf("can't get accrual. err: %s", err)
-	//	return tools.NewError500(errMgg)
-	//}
-	//// err402: Не достаточно средств
-	//if accrualCurrent < sum {
-	//	return tools.NewError402("not enough points")
-	//}
-
-	//// Посчитать app_user.accrual_current - sum
-	//newAccrualCurrent := accrualCurrent - sum
-
-	// Атомарно применяем изменения в БД
-	//err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum, newAccrualCurrent, accrualTotal)
-
-
-
 	err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum)
 	if err != nil {
 		// Транзитом прокидываем 402 и 500 на верх
 		return err
 	}
 
-	//if err != nil {
-	//	errMgg := fmt.Sprintf("can't update accrual. err: %s", err)
-	//	return tools.NewError500(errMgg)
-	//}
 	return nil
 }
 

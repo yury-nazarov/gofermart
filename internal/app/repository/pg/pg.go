@@ -277,7 +277,6 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	defer updateAccrual.Close()
 
 	// Готовим стейтмент для апдейта withdraw_list
-	// `INSERT INTO withdraw_list (order_num, sum_points, user_id)   VALUES ($1, $2, $3)`, orderNum, sumPoints, userID)
 	updateWithdrawList, err := tx.PrepareContext(ctx, "INSERT INTO withdraw_list (order_num, sum_points, user_id) VALUES ($1, $2, $3)")
 	if err != nil {
 		return fmt.Errorf("transaction statment updateWithdrawList has err: %s", err)
@@ -296,11 +295,7 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	}
 
 	// Применяем
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("transaction commit err: %s", err)
-	}
-	return nil
+	return tx.Commit()
 }
 
 // GetOrderByUserID проверяем налицие заказа для конкретного пользователя

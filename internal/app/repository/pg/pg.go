@@ -273,8 +273,7 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 
 	// Получаем данные из БД о текущем балансе пользователя
 	var accrualCurrent float64
-	var accrualTotal float64
-	err = tx.QueryRowContext(ctx, `SELECT accrual_current, accrual_total FROM app_user WHERE id=$1 LIMIT 1`, userID).Scan(&accrualCurrent, accrualTotal)
+	err = tx.QueryRowContext(ctx, `SELECT accrual_current FROM app_user WHERE id=$1 LIMIT 1`, userID).Scan(&accrualCurrent)
 	if err != nil {
 		errMsg := fmt.Sprintf("transaction select user accrual has err: %s", err)
 		return tools.NewError500(errMsg)

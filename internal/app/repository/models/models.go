@@ -5,7 +5,8 @@ package models
 type OrderDB struct {
 	ID         int     `json:"-"`
 	UserID     int     `json:"-"`
-	Number     string  `json:"number"`      // Номер заказа
+	//Number     string  `json:"number"`      // Номер заказа
+	Number     string  `json:"order"`       // Номер заказа
 	Status     string  `json:"status"`      // Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
 	Accrual    float64 `json:"accrual"`     // Сколько начислено баллов этому заказу
 	UploadedAt string  `json:"uploaded_at"` // Дата загрузки в формате RFC3339

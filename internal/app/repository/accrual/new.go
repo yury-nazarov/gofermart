@@ -54,11 +54,11 @@ func (a *accrualClientStruct) Init() {
 			}
 		}
 		a.logger.Println("accrual.Init()----------------------------------")
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(5000 * time.Millisecond)
 	}
 }
 
-// getOrder получает данные из accrual системы
+// getOrderByID получает данные из accrual системы
 //func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error) {
 func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderDB, error) {
 	order := models.OrderDB{}
@@ -88,6 +88,7 @@ func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderDB, err
 			a.logger.Printf("HTTP Client unmarshal err %s", err)
 		}
 		//return order.Number, order.Status, order.Accrual, nil
+		a.logger.Printf("DEBUG ORDER: %s, %s, %f", order.Number, order.Status, order.Accrual)
 		return order, nil
 	}
 	return order, nil

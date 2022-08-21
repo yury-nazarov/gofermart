@@ -12,7 +12,8 @@ type DBInterface interface {
 	// UserExist проверяет наличие пользователя в БД
 	UserExist(ctx context.Context, login string) (bool, error)
 	// NewUser регистрация нового пользователя
-	NewUser(ctx context.Context, user models.UserDB) (int, error)
+	//NewUser(ctx context.Context, user models.UserDB) (int, error)
+	NewUser(ctx context.Context, user models.UserDB) (models.UserDB, error)
 	// UserIsValid Проверяет на сколько валидны креды пользователя и вообще существует ли он
 	UserIsValid(ctx context.Context, user models.UserDB) (models.UserDB, error)
 	// GetOrderByNumber Вернет заказ по его номеру

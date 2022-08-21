@@ -48,7 +48,8 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (token 
 	user.Password = hashPassword(user.Password)
 
 	// Записываем логин и хеш пароля в БД
-	userID, err := a.db.NewUser(ctx, user)
+	//userID, err := a.db.NewUser(ctx, user)
+	user, err = a.db.NewUser(ctx, user)
 	if err != nil {
 		errString := fmt.Sprintf("can't create new user. err: %s", err)
 		a.logger.Print(errString)
@@ -57,7 +58,7 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (token 
 
 	// Генерим Токен, добавляем токен и userID в сессию
 	token = newToken()
-	err = a.loginSession.Add(token, userID)
+	err = a.loginSession.Add(token, user.ID)
 	if err != nil {
 		errString := fmt.Sprintf("can't init user session. err: %s", err)
 		a.logger.Print(errString)

@@ -18,7 +18,7 @@ import (
 
 // pg объект через который происходит подключение к БД
 type pg struct {
-	db *sql.DB
+	db     *sql.DB
 	logger *log.Logger
 }
 
@@ -29,7 +29,7 @@ func New(connStr string, logger *log.Logger) (*pg, error) {
 		return nil, fmt.Errorf("sql.Open is err: %s", err)
 	}
 	dbConnect := &pg{
-		db: db,
+		db:     db,
 		logger: logger,
 	}
 	return dbConnect, nil
@@ -42,7 +42,6 @@ func (p *pg) Migration() error {
 	}
 	return nil
 }
-
 
 // Ping - Проверка соединения с БД
 func (p *pg) Ping() bool {

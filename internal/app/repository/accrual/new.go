@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"io"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 )
 
@@ -29,14 +29,12 @@ func (a *accrualClientStruct) Init() {
 	//	уточняем их состояние в accrual
 	for {
 		// Получаем все со статусом NEW, PROCESSING из БД
-
 		orderList := a.getDataFromDB()
 		a.logger.Printf("HTTP Client: get Orders from DB: %s", orderList)
 		for _, orderNum := range orderList {
 			a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, orderNum)
 
 			// Выполняем запрос в систему рассчета баллов
-			//orderNum, status, accrual, err := a.getOrder(order)
 			order, err := a.getOrderByID(orderNum)
 			if err != nil {
 				a.logger.Printf("can't connect to accrual system. err: %s", err)
@@ -46,8 +44,7 @@ func (a *accrualClientStruct) Init() {
 
 			// Обновляем результат в БД
 			if len(order.Number) != 0 {
-				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n",  order.Number, order.Status, order.Accrual)
-				//err := a.updateAccrual( order.Number, order.Status, order.Accrual)
+				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", order.Number, order.Status, order.Accrual)
 				err := a.updateAccrual(order)
 				if err != nil {
 					a.logger.Printf("updateAccrual have error execute: %s", err)
@@ -60,7 +57,6 @@ func (a *accrualClientStruct) Init() {
 }
 
 // getOrderByID получает данные из accrual системы
-//func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error) {
 func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderFromAccrualSystem, error) {
 	order := models.OrderFromAccrualSystem{}
 
@@ -75,14 +71,13 @@ func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderFromAcc
 	defer resp.Body.Close()
 
 	a.logger.Printf("HTTP Client: response status code: %d", resp.StatusCode)
-	//a.logger.Printf("HTTP Client: response body: %d", resp.Body)
+
 	if resp.StatusCode == 200 {
 		payload, err := io.ReadAll(resp.Body)
 		if err != nil {
 			a.logger.Printf("can't read http body: %s", err)
 			return order, err
 		}
-		//var order AccrualOrder
 
 		err = json.Unmarshal(payload, &order)
 		if err != nil {
@@ -111,7 +106,6 @@ func (a *accrualClientStruct) getDataFromDB() []string {
 //			   сколько баллов получено за конкретный заказ.
 //			3. Проверяем если статус заказа вернувшийся от системы рассчета боллов: INVALID, PROCESSING, REGISTERED
 //			   Если статус иной, то обновляем статус для заказа и идем дальше.
-//func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accrual float64) error {
 func (a *accrualClientStruct) updateAccrual(order models.OrderFromAccrualSystem) error {
 	a.logger.Printf("begin processed order: %s", order.Number)
 	//// Получить данные о текущем заказе и пользователе из БД

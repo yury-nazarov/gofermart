@@ -6,7 +6,6 @@ import (
 	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 )
 
-
 // DBInterface методы работы с релиационными БД
 type DBInterface interface {
 	Ping() bool

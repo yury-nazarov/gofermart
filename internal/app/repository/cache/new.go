@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"log"
 	"sync"
 )
@@ -19,12 +20,13 @@ func NewLoginCache() *userSessionStruct {
 }
 
 // Add - добавить токен в кеш. На пример LogIn
-func (l *userSessionStruct) Add(token string, userID int) error {
+//func (l *userSessionStruct) Add(token string, userID int) error {
+func (l *userSessionStruct) Add(user models.UserDB) error {
 	// Берем мутекс на момент записи
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	l.data[token] = userID
+	l.data[user.Token] = user.ID
 
 	return nil
 }

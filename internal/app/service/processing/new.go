@@ -38,10 +38,11 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	// Если произошла ошибка, то такого заказа нет и его можно создать
 	// ok202 - заказ принят в обработку
 	if err != nil {
-		err = o.db.AddOrder(ctx, orderNum, userID)
+		//err = o.db.AddOrder(ctx, orderNum, userID)
+		err = o.db.AddOrder(ctx, order)
 		if err != nil {
 			// err500
-			errMsg := fmt.Sprintf("add order error %s", err)
+			errMsg := fmt.Sprintf("add order. err: %s", err)
 			return false, false, tools.NewError500(errMsg)
 		}
 		// ok202 - заказ принят в обработку

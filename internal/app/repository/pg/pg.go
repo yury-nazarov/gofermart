@@ -109,11 +109,12 @@ func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o models.Or
 }
 
 // AddOrder добавит новый номер заказа
-func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 error) {
-	_, err500 = p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
-                                             VALUES ($1, $2, $3, $4)`, orderNum, userID, "NEW", 0)
-	if err500 != nil {
-		return err500
+//func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 error) {
+func (p *pg) AddOrder(ctx context.Context, order models.OrderDB) error {
+	_, err := p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
+                                             VALUES ($1, $2, $3, $4)`, order.Number, order.UserID, "NEW", 0)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -209,7 +210,6 @@ func (p *pg) GetAccrual(ctx context.Context, userID int) (user models.UserDB, er
 }
 
 // UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
-//func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error {
 func (p *pg) UpdateAccrual(ctx context.Context, user models.UserDB) error {
 	_, err := p.db.ExecContext(ctx, `UPDATE app_user
                                            SET accrual_current=$1, accrual_total=$2

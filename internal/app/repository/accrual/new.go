@@ -133,7 +133,6 @@ func (a *accrualClientStruct) updateAccrual(order models.OrderFromAccrualSystem)
 		user.AccrualTotal += order.Accrual
 
 		// Обновляем данные в таблице accrual.current_point, accrual.total_point для userID
-		//err = a.db.UpdateAccrual(a.ctx, user.AccrualCurrent, user.AccrualTotal, orderDB.UserID)
 		err = a.db.UpdateAccrual(a.ctx, user)
 		if err != nil {
 			errMsg := fmt.Errorf("can't update accrual for userID: '%d', err: %s", orderDB.UserID, err)

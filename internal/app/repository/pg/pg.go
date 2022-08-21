@@ -234,7 +234,8 @@ func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumbe
 }
 
 // UpdateAccrualTransaction - обновить значения таблиц: app_user, app_order
-func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64) error {
+//func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64) error {
+func (p *pg) UpdateAccrualTransaction(ctx context.Context, withdrawal models.WithdrawDB) error {
 	// Открываем транзакцию
 	tx, err := p.db.Begin()
 	if err != nil {
@@ -245,19 +246,19 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 
 	// Получаем данные из БД о текущем балансе пользователя
 	var accrualCurrent float64
-	err = tx.QueryRowContext(ctx, `SELECT accrual_current FROM app_user WHERE id=$1 LIMIT 1`, userID).Scan(&accrualCurrent)
+	err = tx.QueryRowContext(ctx, `SELECT accrual_current FROM app_user WHERE id=$1 LIMIT 1`, withdrawal.UserID).Scan(&accrualCurrent)
 	if err != nil {
 		errMsg := fmt.Sprintf("transaction select user accrual has err: %s", err)
 		return tools.NewError500(errMsg)
 	}
 
 	// err402: Не достаточно средств
-	if accrualCurrent < sum {
+	if accrualCurrent < withdrawal.Sum {
 		return tools.NewError402("not enough points")
 	}
 
 	// Посчитать app_user.accrual_current - sum
-	newAccrualCurrent := accrualCurrent - sum
+	newAccrualCurrent := accrualCurrent - withdrawal.Sum
 
 	// Готовим стейтмент для апдейта app_user
 	updateAccrual, err := tx.PrepareContext(ctx, "UPDATE app_user SET accrual_current=$1 WHERE id=$2")
@@ -275,14 +276,14 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, user
 	}
 
 	// Выполянем
-	_, err = updateAccrual.ExecContext(ctx, newAccrualCurrent, userID)
+	_, err = updateAccrual.ExecContext(ctx, newAccrualCurrent, withdrawal.UserID)
 	if err != nil {
 		errMsg := fmt.Sprintf("transaction execute updateAccrual has err: %s", err)
 		return tools.NewError500(errMsg)
 	}
 
 	// Выполянем
-	_, err = updateWithdrawList.ExecContext(ctx, orderNum, sum, userID)
+	_, err = updateWithdrawList.ExecContext(ctx, withdrawal.Order, withdrawal.Sum, withdrawal.UserID)
 	if err != nil {
 		errMsg := fmt.Sprintf("transaction execute updateOrderAccrual has err: %s", err)
 		return tools.NewError500(errMsg)

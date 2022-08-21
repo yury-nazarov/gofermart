@@ -47,7 +47,7 @@ func (a *accrualClientStruct) Init() {
 				//a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", order.Number, order.Status, order.Accrual)
 				err := a.updateAccrual(order)
 				if err != nil {
-					//a.logger.Printf("updateAccrual have error execute: %s", err)
+					a.logger.Printf("updateAccrual have error execute: %s", err)
 				}
 			}
 		}
@@ -81,7 +81,7 @@ func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderFromAcc
 
 		err = json.Unmarshal(payload, &order)
 		if err != nil {
-			//a.logger.Printf("HTTP Client unmarshal err %s", err)
+			a.logger.Printf("HTTP Client unmarshal err %s", err)
 		}
 		//a.logger.Printf("DEBUG ORDER: %s, %s, %f", order.Number, order.Status, order.Accrual)
 		return order, nil

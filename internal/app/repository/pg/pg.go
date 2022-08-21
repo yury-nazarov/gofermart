@@ -113,10 +113,7 @@ func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (models.Orde
 }
 
 // AddOrder добавит новый номер заказа
-//func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 error) {
 func (p *pg) AddOrder(ctx context.Context, order models.OrderDB) error {
-	p.logger.Printf("DEBUG: repository.pg AddOrder")
-	p.logger.Printf("DEBUG: resive order: %s and %d", order.Number, order.UserID)
 	_, err := p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
                                              VALUES ($1, $2, $3, $4)`, order.Number, order.UserID, "NEW", 0)
 	if err != nil {

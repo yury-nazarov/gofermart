@@ -18,7 +18,6 @@ type DBInterface interface {
 	GetOrderByNumber(ctx context.Context, orderNum string) (order models.OrderDB, err error)
 	// AddOrder добавит новый номер заказа
 	AddOrder(ctx context.Context, order models.OrderDB) error
-	//AddOrder(ctx context.Context, orderNumber string, userID int) error
 	// AddAccrual добавляет запись в таблицу accrual
 	AddAccrual(ctx context.Context, userID int) error
 	// ListOrders Получить спосок заказов пользователя

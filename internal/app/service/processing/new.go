@@ -2,6 +2,8 @@ package processing
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -33,24 +35,21 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	}
 
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID
-	o.logger.Printf("Throw orderID: %s for userID: %d to GetOrderByNumber", orderNum, userID)
 	order, err := o.db.GetOrderByNumber(ctx, orderNum)
-	o.logger.Printf("DEBUG: service.processing.Add[return from GetOrderByNumber] order.Number: %s, order.UserID: %d", order.Number, order.UserID)
 
-	// Если произошла ошибка, то такого заказа нет и его можно создать
+	// Если такого заказа нет - его можно создать
 	// ok202 - заказ принят в обработку
-	if err != nil {
-	//if errors.Is(err, sql.ErrNoRows) {
-		//err = o.db.AddOrder(ctx, orderNum, userID)
-		o.logger.Printf("DEBUG: service.processing.Add[return from GetOrderByNumber] err order %s not fount in DB", orderNum)
+	//if err != nil {
+	if errors.Is(err, sql.ErrNoRows) {
+		// TODO: Вынести выше по стеку в хендлер создание этой структурки
 		var newOrder models.OrderDB
 		newOrder.Number = orderNum
 		newOrder.UserID = userID
+
 		err = o.db.AddOrder(ctx, newOrder)
 		if err != nil {
 			// err500
 			errMsg := fmt.Sprintf("add order. err: %s", err)
-			o.logger.Printf("DEBUG add order %s error %s", orderNum, errMsg)
 			return false, false, tools.NewError500(errMsg)
 		}
 		// ok202 - заказ принят в обработку

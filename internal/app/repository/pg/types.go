@@ -15,7 +15,6 @@ type DBInterface interface {
 	NewUser(ctx context.Context, user models.UserDB) (int, error)
 	// UserIsValid Проверяет на сколько валидны креды пользователя и вообще существует ли он
 	UserIsValid(ctx context.Context, user models.UserDB) (models.UserDB, error)
-	//UserIsValid(ctx context.Context, login string, hashPwd string) (userID int, err error)
 	// GetOrderByNumber Вернет заказ по его номеру
 	GetOrderByNumber(ctx context.Context, orderNum string) (order models.OrderDB, err error)
 	// AddOrder добавит новый номер заказа

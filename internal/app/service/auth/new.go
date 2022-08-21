@@ -75,7 +75,6 @@ func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (token 
 	user.Password = hashPassword(user.Password)
 
 	// Проверяем в БД наличие пользователя
-	//userID, err := a.db.UserIsValid(ctx, user.Login, user.Password)
 	user, err = a.db.UserIsValid(ctx, user)
 	if err != nil {
 		errString := fmt.Sprintf("incorrect login or password: %s", err)

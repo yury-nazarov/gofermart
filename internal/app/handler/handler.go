@@ -94,7 +94,6 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	var err401 *tools.Error401
 	var err500 *tools.Error500
 
-	//token, err := c.user.SignIn(r.Context(), user.Login, user.Password)
 	token, err := c.user.SignIn(r.Context(), user)
 	if errors.As(err, &err401) {
 		c.logger.Printf("can't sign in login: %s, err: %s", user.Login, err)

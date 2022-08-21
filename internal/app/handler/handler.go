@@ -59,7 +59,8 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	var err400 *tools.Error400
 	var err500 *tools.Error500
 
-	token, err := c.user.SignUp(r.Context(), user)
+	// регистрируем пользователя, выдав токен
+	user, err = c.user.SignUp(r.Context(), user)
 	if errors.As(err, &err400) {
 		c.logger.Printf("can't sing up userLogin: %s, err: %s", user.Login, err)
 		w.WriteHeader(http.StatusConflict)
@@ -71,7 +72,7 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Отправялем ответ клиенту, записав токен в заголовок
-	w.Header().Set("Authorization", token)
+	w.Header().Set("Authorization", user.Token)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -94,7 +95,8 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	var err401 *tools.Error401
 	var err500 *tools.Error500
 
-	token, err := c.user.SignIn(r.Context(), user)
+	// Регистрируем пользователя выдав токен
+	user, err = c.user.SignIn(r.Context(), user)
 	if errors.As(err, &err401) {
 		c.logger.Printf("can't sign in login: %s, err: %s", user.Login, err)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -107,7 +109,7 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Отправялем ответ клиенту, записав токен в заголовок
-	w.Header().Set("Authorization", token)
+	w.Header().Set("Authorization", user.Token)
 	w.WriteHeader(http.StatusOK)
 }
 

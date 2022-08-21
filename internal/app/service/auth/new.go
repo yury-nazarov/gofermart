@@ -29,19 +29,19 @@ func NewAuth(db pg.DBInterface, loginSession cache.UserSessionInterface, logger 
 
 // SignUp регистрация пользователя
 //func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (token string, err error) {
-func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (token string, err error) {
+func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (models.UserDB, error) {
 	ok, err := a.db.UserExist(ctx, user.Login)
 	// Error500
 	if err != nil {
 		errString := fmt.Sprintf("UserExist sql querry error: %s", err)
 		a.logger.Print(errString)
-		return "", tools.NewError500(errString)
+		return user, tools.NewError500(errString)
 	}
 	// Error400
 	if ok {
 		errString := fmt.Sprintf("user exist: %s", err)
 		a.logger.Print(errString)
-		return "", tools.NewError400(errString)
+		return user, tools.NewError400(errString)
 	}
 
 	// Считаем хеш пароля и перезаписываем переменную
@@ -53,7 +53,7 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (token 
 	if err != nil {
 		errString := fmt.Sprintf("can't create new user. err: %s", err)
 		a.logger.Print(errString)
-		return "", tools.NewError400(errString)
+		return user, tools.NewError400(errString)
 	}
 
 	// Генерим Токен, добавляем токен и userID в сессию
@@ -64,25 +64,25 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (token 
 	if err != nil {
 		errString := fmt.Sprintf("can't init user session. err: %s", err)
 		a.logger.Print(errString)
-		return "", tools.NewError500(errString)
+		return user, tools.NewError500(errString)
 	}
 
 	// Возвращаем токен для записи в заголовок
-	return token, nil
+	return user, nil
 }
 
 // SignIn вход пользователя
 //func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (token string, err error) {
-func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (token string, err error) {
+func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (models.UserDB,error) {
 	// Считаем хеш пароля
 	user.Password = hashPassword(user.Password)
 
 	// Проверяем в БД наличие пользователя
-	user, err = a.db.UserIsValid(ctx, user)
+	user, err := a.db.UserIsValid(ctx, user)
 	if err != nil {
 		errString := fmt.Sprintf("incorrect login or password: %s", err)
 		a.logger.Print(errString)
-		return "", tools.NewError401(errString)
+		return user, tools.NewError401(errString)
 	}
 
 	// Генерим токен, добавляем в сессию
@@ -91,9 +91,9 @@ func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (token 
 	if err != nil {
 		errString := fmt.Sprintf("error add token to session: %s", err)
 		a.logger.Print(errString)
-		return "", tools.NewError500(errString)
+		return user, tools.NewError500(errString)
 	}
-	return token, nil
+	return user, nil
 }
 
 func (a authLocalStruct) IsUserSignIn(token string) (userID int, err500 error) {

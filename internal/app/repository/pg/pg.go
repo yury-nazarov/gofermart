@@ -8,70 +8,39 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/yury-nazarov/gofermart/pkg/tools"
 	"log"
+
+	"github.com/pressly/goose"
+	"github.com/yury-nazarov/gofermart/pkg/tools"
 )
 
 // pg объект через который происходит подключение к БД
 type pg struct {
 	db *sql.DB
+	logger *log.Logger
 }
 
 // New Иницирует подключение к Postgres
-func New(connStr string) (*pg, error) {
+func New(connStr string, logger *log.Logger) (*pg, error) {
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open is err: %s", err)
 	}
 	dbConnect := &pg{
 		db: db,
+		logger: logger,
 	}
 	return dbConnect, nil
 }
 
-// SchemeInit создает схему БД если ее еще нет
-func (p *pg) SchemeInit() error {
-	// Контекст для инициализации БД
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Таблица Users - содержит логин пользователя и хеш пароля
-	_, errUser := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS app_user (
-											id serial 			PRIMARY KEY,
-											login 				VARCHAR (255) NOT NULL,
-											password 			VARCHAR (255) NOT NULL,
-    										accrual_current 	FLOAT default 0,
-    										accrual_total 		FLOAT default 0
-											)`)
-	if errUser != nil {
-		return fmt.Errorf("create table `app_user`: %s", errUser)
+func (p *pg) Migration() error {
+	err := goose.Up(p.db, "./internal/migrations")
+	if err != nil {
+		return err
 	}
-
-	_, errOrder := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS app_order (
-    										id serial 	PRIMARY KEY,
-    										number 		VARCHAR (255) NOT NULL,
-    										user_id 	INT NOT NULL,
-    										status 		VARCHAR (255) NOT NULL,
-    										accrual 	FLOAT,
-    										uploaded_at TIMESTAMP default NOW()
-    										)`)
-	if errOrder != nil {
-		return fmt.Errorf("create table `app_order`: %s", errOrder)
-	}
-
-	_, errWithdrawList := p.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS withdraw_list (
-    											id serial 		PRIMARY KEY,
-    											order_num	 	VARCHAR (255) NOT NULL,
-    											sum_points	 	FLOAT,
-    											user_id 		INT NOT NULL,
-                                   				processed_at 	TIMESTAMP default NOW()
-												)`)
-	if errWithdrawList != nil {
-		return fmt.Errorf("create table `withdraw_list`: %w", errWithdrawList)
-	}
-
 	return nil
 }
+
 
 // Ping - Проверка соединения с БД
 func (p *pg) Ping() bool {
@@ -79,6 +48,7 @@ func (p *pg) Ping() bool {
 		log.Printf("Ping fail:, %s", err)
 		return false
 	}
+	p.logger.Printf("success ping db check")
 	return true
 }
 

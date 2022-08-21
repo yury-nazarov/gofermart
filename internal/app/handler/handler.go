@@ -124,7 +124,7 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	order := string(bodyData)
+	orderNum := string(bodyData)
 
 	// Получаем пользователя по токену
 	token := r.Header.Get("Authorization")
@@ -140,16 +140,17 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	var err500 *tools.Error500
 
 	// Пробуем добавить заказ
-	ok200, ok202, err := c.order.Add(r.Context(), order, userID)
+	c.logger.Printf("Handler. From userID: %d, get orderNum: %s", userID, orderNum)
+	ok200, ok202, err := c.order.Add(r.Context(), orderNum, userID)
 	// номер заказа уже был загружен этим пользователем;
 	if ok200 {
-		c.logger.Printf("Order %s for userID %d is exist", order, userID)
+		c.logger.Printf("Order %s for userID %d is exist", orderNum, userID)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 	// новый номер заказа принят в обработку;
 	if ok202 {
-		c.logger.Printf("Order %s for userID %d accepted and will be processing", order, userID)
+		c.logger.Printf("Order %s for userID %d accepted and will be processing", orderNum, userID)
 		w.WriteHeader(http.StatusAccepted)
 		return
 	}
@@ -216,7 +217,6 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 
 	// Сериализуем JSON и отдаем пользователю
 	ordersJSON, err := json.Marshal(orders)
-	c.logger.Printf("HANDLER DEBUG ordersJSON: %s", ordersJSON)
 	if err != nil {
 		c.logger.Printf("can't json marshal. err: %s", err500)
 		w.WriteHeader(http.StatusInternalServerError)

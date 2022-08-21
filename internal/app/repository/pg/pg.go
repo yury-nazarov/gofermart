@@ -96,21 +96,27 @@ func (p *pg) UserIsValid(ctx context.Context, login string, hashPwd string) (use
 }
 
 // GetOrderByNumber Вернет заказ по его номеру
-func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o models.OrderDB, err error) {
+func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (models.OrderDB, error) {
 	// Если записи нет то вернется {0 0 0  0 }
+	p.logger.Printf("DEBUG PG GetOrderByNumber: %s", orderNum)
+	var o models.OrderDB
 	row := p.db.QueryRowContext(ctx, `SELECT id, user_id, number, status, accrual, uploaded_at 
                                             FROM app_order 
                                             WHERE number=$1 LIMIT 1`, orderNum)
-	err = row.Scan(&o.UserID, &o.UserID, &o.Number, &o.Status, &o.Accrual, &o.UploadedAt)
+	err := row.Scan(&o.ID, &o.UserID, &o.Number, &o.Status, &o.Accrual, &o.UploadedAt)
 	if err != nil {
+		p.logger.Printf("DEBUG PG GetOrderByNumber err: %s", err)
 		return o, fmt.Errorf("order not found: %s", err)
 	}
+	p.logger.Printf("DEBUG: get order from db by orderNum: %s. o.ID: %d, &o.UserID: %d", orderNum, o.ID, o.UserID)
 	return o, nil
 }
 
 // AddOrder добавит новый номер заказа
 //func (p *pg) AddOrder(ctx context.Context, orderNum string, userID int) (err500 error) {
 func (p *pg) AddOrder(ctx context.Context, order models.OrderDB) error {
+	p.logger.Printf("DEBUG: repository.pg AddOrder")
+	p.logger.Printf("DEBUG: resive order: %s and %d", order.Number, order.UserID)
 	_, err := p.db.ExecContext(ctx, `INSERT INTO app_order (number, user_id, status, accrual) 
                                              VALUES ($1, $2, $3, $4)`, order.Number, order.UserID, "NEW", 0)
 	if err != nil {

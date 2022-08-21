@@ -33,6 +33,7 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	}
 
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID
+	o.logger.Printf("Throw orderID: %s for userID: %d to GetOrderByNumber", orderNum, userID)
 	order, err := o.db.GetOrderByNumber(ctx, orderNum)
 	o.logger.Printf("DEBUG: service.processing.Add[return from GetOrderByNumber] order.Number: %s, order.UserID: %d", order.Number, order.UserID)
 
@@ -41,10 +42,15 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	if err != nil {
 	//if errors.Is(err, sql.ErrNoRows) {
 		//err = o.db.AddOrder(ctx, orderNum, userID)
-		err = o.db.AddOrder(ctx, order)
+		o.logger.Printf("DEBUG: service.processing.Add[return from GetOrderByNumber] err order %s not fount in DB", orderNum)
+		var newOrder models.OrderDB
+		newOrder.Number = orderNum
+		newOrder.UserID = userID
+		err = o.db.AddOrder(ctx, newOrder)
 		if err != nil {
 			// err500
 			errMsg := fmt.Sprintf("add order. err: %s", err)
+			o.logger.Printf("DEBUG add order %s error %s", orderNum, errMsg)
 			return false, false, tools.NewError500(errMsg)
 		}
 		// ok202 - заказ принят в обработку

@@ -82,18 +82,20 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 //		500 — внутренняя ошибка сервера.
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
-	user := auth.User{}
+	//user := auth.User{}
+	user := models.UserDB{}
 	err := JSONError400(r, &user, c.logger)
 	if err != nil {
 		c.logger.Printf("JSON parsing error for login: %s, err: %s", user.Login, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	// Передаем в лой бизнес логики
+	// Передаем в слой бизнес логики
 	var err401 *tools.Error401
 	var err500 *tools.Error500
 
-	token, err := c.user.SignIn(r.Context(), user.Login, user.Password)
+	//token, err := c.user.SignIn(r.Context(), user.Login, user.Password)
+	token, err := c.user.SignIn(r.Context(), user)
 	if errors.As(err, &err401) {
 		c.logger.Printf("can't sign in login: %s, err: %s", user.Login, err)
 		w.WriteHeader(http.StatusUnauthorized)

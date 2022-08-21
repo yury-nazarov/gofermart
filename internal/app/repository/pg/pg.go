@@ -84,15 +84,16 @@ func (p *pg) NewUser(ctx context.Context, user models.UserDB) (int, error) {
 }
 
 // UserIsValid - Делает SQL в БД если по login и хеш пароля есть запись - значит пользователь существует и валиден.
-func (p *pg) UserIsValid(ctx context.Context, login string, hashPwd string) (userID int, err error) {
-	err = p.db.QueryRowContext(ctx, `SELECT app_user.id FROM app_user
+//func (p *pg) UserIsValid(ctx context.Context, login string, hashPwd string) (userID int, err error) {
+func (p *pg) UserIsValid(ctx context.Context, user models.UserDB) (models.UserDB, error) {
+	err := p.db.QueryRowContext(ctx, `SELECT app_user.id FROM app_user
                                            WHERE login=$1
                                            AND password=$2
-                                           LIMIT 1`, login, hashPwd).Scan(&userID)
+                                           LIMIT 1`, user.Login, user.Password).Scan(&user.ID)
 	if err != nil {
-		return 0, fmt.Errorf("user not found: %s", err)
+		return user, fmt.Errorf("user not found: %s", err)
 	}
-	return userID, nil
+	return user, nil
 }
 
 // GetOrderByNumber Вернет заказ по его номеру

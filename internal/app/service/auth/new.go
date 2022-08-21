@@ -69,12 +69,14 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (token 
 }
 
 // SignIn вход пользователя
-func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (token string, err error) {
+//func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (token string, err error) {
+func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (token string, err error) {
 	// Считаем хеш пароля
-	hashPwd := hashPassword(password)
+	user.Password = hashPassword(user.Password)
 
 	// Проверяем в БД наличие пользователя
-	userID, err := a.db.UserIsValid(ctx, login, hashPwd)
+	//userID, err := a.db.UserIsValid(ctx, user.Login, user.Password)
+	user, err = a.db.UserIsValid(ctx, user)
 	if err != nil {
 		errString := fmt.Sprintf("incorrect login or password: %s", err)
 		a.logger.Print(errString)
@@ -83,7 +85,7 @@ func (a authLocalStruct) SignIn(ctx context.Context, login string, password stri
 
 	// Генерим токен, добавляем в сессию
 	token = newToken()
-	err = a.loginSession.Add(token, userID)
+	err = a.loginSession.Add(token, user.ID)
 	if err != nil {
 		errString := fmt.Sprintf("error add token to session: %s", err)
 		a.logger.Print(errString)

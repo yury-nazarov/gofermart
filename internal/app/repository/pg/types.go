@@ -25,12 +25,14 @@ type DBInterface interface {
 	// GetOrders получает все заказы со статусом NEW, PROCESSING
 	GetOrders() ([]string, error)
 	// OrderStatusUpdate обновить статус заказа
-	OrderStatusUpdate(ctx context.Context, orderNum string, status string) error
+	OrderStatusUpdate(ctx context.Context, order models.OrderFromAccrualSystem) error
+	//OrderStatusUpdate(ctx context.Context, orderNum string, status string) error
 	//GetAccrual получить текущие значения таблицы: app_user.accrual_current, app_user.accrual_total
 	GetAccrual(ctx context.Context, userID int) (models.UserDB, error)
 	// UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
 	UpdateAccrual(ctx context.Context, user models.UserDB) error
-	// UpdateAccrualTransaction - списание баллов в рамках транзации и обновление / добавление во все нужные таблицы
+	// UpdateAccrualTransaction - списание баллов в рамках транзации из таблицы 'app_user'
+	// 							  добавление записи о списании в 'withdraw_list'
 	UpdateAccrualTransaction(ctx context.Context, withdrawal models.WithdrawDB) error
 	// UpdateOrderAccrual - обновляет значения для app_order.accrual
 	UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error

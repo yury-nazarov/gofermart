@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"io"
 	"log"
 	"net/http"
@@ -35,17 +36,18 @@ func (a *accrualClientStruct) Init() {
 			a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
 
 			// Выполняем запрос в систему рассчета баллов
-			orderNum, status, accrual, err := a.getOrder(order)
+			//orderNum, status, accrual, err := a.getOrder(order)
+			order, err := a.getOrderByID(order)
 			if err != nil {
 				a.logger.Printf("can't connect to accrual system. err: %s", err)
 				continue
 			}
-			a.logger.Printf("orderNum: %s, status: %s, accrual: %f", orderNum, status, accrual)
+			a.logger.Printf("orderNum: %s, status: %s, accrual: %f", order.Number, order.Status, order.Accrual)
 
 			// Обновляем результат в БД
-			if len(orderNum) != 0 {
-				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", orderNum, status, accrual)
-				err := a.updateAccrual(orderNum, status, accrual)
+			if len(order.Number) != 0 {
+				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n",  order.Number, order.Status, order.Accrual)
+				err := a.updateAccrual( order.Number, order.Status, order.Accrual)
 				if err != nil {
 					a.logger.Printf("updateAccrual have error execute: %s", err)
 				}
@@ -57,14 +59,17 @@ func (a *accrualClientStruct) Init() {
 }
 
 // getOrder получает данные из accrual системы
-func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error) {
+//func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error) {
+func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderDB, error) {
+	order := models.OrderDB{}
+
 	endpoint := fmt.Sprintf("%s/api/orders/%s", a.accrualAddress, orderNum)
 	a.logger.Printf("HTTP Client: HTTP GET to endpoint: %s", endpoint)
 	resp, err := http.Get(endpoint)
 	if err != nil {
-		errMsg := fmt.Errorf("can't connection to accrual server: %s", a.accrualAddress)
-		a.logger.Print(errMsg)
-		return "", "", 0, errMsg
+		err = fmt.Errorf("can't connection to accrual server: %s", a.accrualAddress)
+		a.logger.Print(err)
+		return order, err
 	}
 	defer resp.Body.Close()
 
@@ -74,16 +79,18 @@ func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64
 		payload, err := io.ReadAll(resp.Body)
 		if err != nil {
 			a.logger.Printf("can't read http body: %s", err)
-			return "", "", 0, nil
+			return order, err
 		}
-		var order AccrualOrder
+		//var order AccrualOrder
+
 		err = json.Unmarshal(payload, &order)
 		if err != nil {
 			a.logger.Printf("HTTP Client unmarshal err %s", err)
 		}
-		return order.Number, order.Status, order.Accrual, nil
+		//return order.Number, order.Status, order.Accrual, nil
+		return order, nil
 	}
-	return "", "", 0, nil
+	return order, nil
 }
 
 // getDataFromDB - получает из БД заказы со стратусом NEW и PROCESSING

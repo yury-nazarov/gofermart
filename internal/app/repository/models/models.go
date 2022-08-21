@@ -11,6 +11,14 @@ type OrderDB struct {
 	UploadedAt string  `json:"uploaded_at"` // Дата загрузки в формате RFC3339
 }
 
+//// AccrualOrder для преобразования из JSON ответа accrual сервиса
+//type AccrualOrder struct {
+//	Number  string  `json:"order"`
+//	Status  string  `json:"status"`
+//	Accrual float64 `json:"accrual"`
+//}
+
+
 // WithdrawDB структура для анмаршала JSON из HTTP Request
 type WithdrawDB struct {
 	Order       string  `json:"order"`

@@ -33,7 +33,7 @@ func (a *accrualClientStruct) Init() {
 		orderList := a.getDataFromDB()
 		a.logger.Printf("HTTP Client: get Orders from DB: %s", orderList)
 		for _, orderNum := range orderList {
-			a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
+			a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, orderNum)
 
 			// Выполняем запрос в систему рассчета баллов
 			//orderNum, status, accrual, err := a.getOrder(order)

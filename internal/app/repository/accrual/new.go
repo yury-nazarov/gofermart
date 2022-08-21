@@ -141,7 +141,7 @@ func (a *accrualClientStruct) updateAccrual(order models.OrderFromAccrualSystem)
 		a.logger.Printf("success update table 'accrual' for userID: '%d'", orderDB.UserID)
 
 		// Обновить данные об в таблице app_order.accrual для orderNumber
-		err = a.db.UpdateOrderAccrual(a.ctx, order.Accrual, order.Number)
+		err = a.db.UpdateOrderAccrual(a.ctx, order)
 		if err != nil {
 			errMsg := fmt.Errorf("can't update 'app_order.accrual' for userID: '%d', err: %s", orderDB.UserID, err)
 			a.logger.Println(errMsg)
@@ -150,7 +150,6 @@ func (a *accrualClientStruct) updateAccrual(order models.OrderFromAccrualSystem)
 
 	}
 	// Обновляем статус если: INVALID, PROCESSING, REGISTERED
-	//err = a.db.OrderStatusUpdate(a.ctx, order.Number, order.Status)
 	err = a.db.OrderStatusUpdate(a.ctx, order)
 	if err != nil {
 		errMsg := fmt.Errorf("can't update 'app_order.status' %s for order: '%s', err: %s", order.Status, order.Number, err)

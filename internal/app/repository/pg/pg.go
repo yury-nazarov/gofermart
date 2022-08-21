@@ -193,7 +193,6 @@ func (p *pg) GetOrders() ([]string, error) {
 }
 
 // OrderStatusUpdate обновить статус заказа
-//func (p *pg) OrderStatusUpdate(ctx context.Context, orderNum string, status string) error {
 func (p *pg) OrderStatusUpdate(ctx context.Context, order models.OrderFromAccrualSystem) error {
 	_, err500 := p.db.ExecContext(ctx, `UPDATE app_order SET status=$1 WHERE number=$2`, order.Status, order.Number)
 	if err500 != nil {
@@ -225,9 +224,9 @@ func (p *pg) UpdateAccrual(ctx context.Context, user models.UserDB) error {
 }
 
 // UpdateOrderAccrual - обновляет значения для app_order.accrual
-func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error {
+func (p *pg) UpdateOrderAccrual(ctx context.Context, order models.OrderFromAccrualSystem) error {
 	_, err := p.db.ExecContext(ctx, `UPDATE app_order SET accrual=$1
-                                           WHERE number=$2`, accrual, orderNumber)
+                                           WHERE number=$2`, order.Accrual, order.Number)
 	if err != nil {
 		return err
 	}

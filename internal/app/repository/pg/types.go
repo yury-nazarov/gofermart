@@ -26,7 +26,6 @@ type DBInterface interface {
 	GetOrders() ([]string, error)
 	// OrderStatusUpdate обновить статус заказа
 	OrderStatusUpdate(ctx context.Context, order models.OrderFromAccrualSystem) error
-	//OrderStatusUpdate(ctx context.Context, orderNum string, status string) error
 	//GetAccrual получить текущие значения таблицы: app_user.accrual_current, app_user.accrual_total
 	GetAccrual(ctx context.Context, userID int) (models.UserDB, error)
 	// UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
@@ -35,7 +34,7 @@ type DBInterface interface {
 	// 							  добавление записи о списании в 'withdraw_list'
 	UpdateAccrualTransaction(ctx context.Context, withdrawal models.WithdrawDB) error
 	// UpdateOrderAccrual - обновляет значения для app_order.accrual
-	UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error
+	UpdateOrderAccrual(ctx context.Context, order models.OrderFromAccrualSystem) error
 	// GetOrderByUserID проверяем налицие заказа для конкретного пользователя
 	GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error)
 	// GetWithdrawList вернет список всех списаний для пользователя

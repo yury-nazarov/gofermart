@@ -91,7 +91,7 @@ func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderDB, err
 		a.logger.Printf("DEBUG ORDER: %s, %s, %f", order.Number, order.Status, order.Accrual)
 		return order, nil
 	}
-	return order, nil
+	return order, fmt.Errorf("order not fount")
 }
 
 // getDataFromDB - получает из БД заказы со стратусом NEW и PROCESSING

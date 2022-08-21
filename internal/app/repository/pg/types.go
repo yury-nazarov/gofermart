@@ -36,8 +36,6 @@ type DBInterface interface {
 	UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error
 	// GetOrderByUserID проверяем налицие заказа для конкретного пользователя
 	GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error)
-	// AddToWithdrawList - добавляет новую запись в журнал
-	AddToWithdrawList(ctx context.Context, orderNum string, sum float64, userID int) error
 	// GetWithdrawList вернет список всех списаний для пользователя
 	GetWithdrawList(ctx context.Context, userID int) ([]models.WithdrawDB, error)
 }

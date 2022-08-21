@@ -11,7 +11,7 @@ type DBInterface interface {
 	Ping() bool
 	// UserExist проверяет наличие пользователя в БД
 	UserExist(ctx context.Context, login string) (bool, error)
-	//NewUser(ctx context.Context, login string, pwd string) (int, error)
+	// NewUser регистрация нового пользователя
 	NewUser(ctx context.Context, user models.UserDB) (int, error)
 	// UserIsValid Проверяет на сколько валидны креды пользователя и вообще существует ли он
 	UserIsValid(ctx context.Context, login string, hashPwd string) (userID int, err error)

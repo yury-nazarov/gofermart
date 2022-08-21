@@ -8,7 +8,6 @@ import (
 
 type UserInterface interface {
 	// SignUp Регистрирует пользователя
-	//SignUp(ctx context.Context, login string, password string) (token string, err error)
 	SignUp(ctx context.Context, user models.UserDB) (token string, err error)
 	// SignIn Авторизует пользователя
 	SignIn(ctx context.Context, login string, password string) (token string, err error)

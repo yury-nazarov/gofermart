@@ -48,7 +48,6 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (token 
 	user.Password = hashPassword(user.Password)
 
 	// Записываем логин и хеш пароля в БД
-	//userID, err := a.db.NewUser(ctx, login, hashPwd)
 	userID, err := a.db.NewUser(ctx, user)
 	if err != nil {
 		errString := fmt.Sprintf("can't create new user. err: %s", err)

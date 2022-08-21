@@ -58,7 +58,7 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	// Регистрируем пользователя
 	var err400 *tools.Error400
 	var err500 *tools.Error500
-	//token, err := c.user.SignUp(r.Context(), user.Login, user.Password)
+
 	token, err := c.user.SignUp(r.Context(), user)
 	if errors.As(err, &err400) {
 		c.logger.Printf("can't sing up userLogin: %s, err: %s", user.Login, err)

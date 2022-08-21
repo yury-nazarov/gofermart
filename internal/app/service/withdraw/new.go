@@ -26,7 +26,6 @@ func NewBalance(db pg.DBInterface, logger *log.Logger) *balanceStruct {
 func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance, error) {
 	var balance Balance
 	// Делаем запрос в app_user, получаем: app_user.accrual_current app_user.accrual_total
-	//current, total, err := b.db.GetAccrual(ctx, userID)
 	user, err := b.db.GetAccrual(ctx, userID)
 	if err != nil {
 		return balance, err

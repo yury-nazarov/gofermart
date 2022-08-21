@@ -30,28 +30,22 @@ func (a *accrualClientStruct) Init() {
 	for {
 		// Получаем все со статусом NEW, PROCESSING из БД
 		orderList := a.getDataFromDB()
-		//a.logger.Printf("HTTP Client: get Orders from DB: %s", orderList)
 		for _, orderNum := range orderList {
-			//a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, orderNum)
 
 			// Выполняем запрос в систему рассчета баллов
 			order, err := a.getOrderByID(orderNum)
 			if err != nil {
-				//a.logger.Printf("can't connect to accrual system. err: %s", err)
 				continue
 			}
-			//a.logger.Printf("orderNum: %s, status: %s, accrual: %f", order.Number, order.Status, order.Accrual)
 
 			// Обновляем результат в БД
 			if len(order.Number) != 0 {
-				//a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n", order.Number, order.Status, order.Accrual)
 				err := a.updateAccrual(order)
 				if err != nil {
 					a.logger.Printf("updateAccrual have error execute: %s", err)
 				}
 			}
 		}
-		//a.logger.Println("accrual.Init()----------------------------------")
 		time.Sleep(500 * time.Millisecond)
 	}
 }
@@ -61,16 +55,12 @@ func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderFromAcc
 	order := models.OrderFromAccrualSystem{}
 
 	endpoint := fmt.Sprintf("%s/api/orders/%s", a.accrualAddress, orderNum)
-	//a.logger.Printf("HTTP Client: HTTP GET to endpoint: %s", endpoint)
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		err = fmt.Errorf("can't connection to accrual server: %s", a.accrualAddress)
-		//a.logger.Print(err)
 		return order, err
 	}
 	defer resp.Body.Close()
-
-	//a.logger.Printf("HTTP Client: response status code: %d", resp.StatusCode)
 
 	if resp.StatusCode == 200 {
 		payload, err := io.ReadAll(resp.Body)
@@ -83,7 +73,6 @@ func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderFromAcc
 		if err != nil {
 			a.logger.Printf("HTTP Client unmarshal err %s", err)
 		}
-		//a.logger.Printf("DEBUG ORDER: %s, %s, %f", order.Number, order.Status, order.Accrual)
 		return order, nil
 	}
 	return order, fmt.Errorf("order not fount")
@@ -120,7 +109,6 @@ func (a *accrualClientStruct) updateAccrual(order models.OrderFromAccrualSystem)
 	// 						   можно обновить все необходимые данные в БД
 	if order.Status == "PROCESSED" {
 		// Посчитать новые значения для accrual.current_point, accrual.total_point
-		//currentPoint, totalPoint, err := a.db.GetAccrual(a.ctx, orderDB.UserID)
 		user, err := a.db.GetAccrual(a.ctx, orderDB.UserID)
 		if err != nil {
 			errMsg := fmt.Errorf("can't get accrual on userID: '%d', err: %s", orderDB.UserID, err)

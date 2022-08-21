@@ -136,7 +136,7 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Делаем структурку для дальнейше передачи аргументов заказа в бизнес логику
-	var newOrder = models.OrderDB{Number: orderNum, UserID: userID }
+	var newOrder = models.OrderDB{Number: orderNum, UserID: userID}
 
 	var err409 *tools.Error409
 	var err422 *tools.Error422

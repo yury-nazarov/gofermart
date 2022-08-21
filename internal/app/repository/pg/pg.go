@@ -124,10 +124,10 @@ func (p *pg) AddOrder(ctx context.Context, order models.OrderDB) error {
 
 // AddAccrual добавляет запись в таблицу accrual
 func (p *pg) AddAccrual(ctx context.Context, userID int) error {
-	_, err500 := p.db.ExecContext(ctx, `INSERT INTO accrual (current_point, total_point, user_id) 
+	_, err := p.db.ExecContext(ctx, `INSERT INTO accrual (current_point, total_point, user_id) 
                                               VALUES (0, 0, $1)`, userID)
-	if err500 != nil {
-		return err500
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -194,9 +194,9 @@ func (p *pg) GetOrders() ([]string, error) {
 
 // OrderStatusUpdate обновить статус заказа
 func (p *pg) OrderStatusUpdate(ctx context.Context, order models.OrderFromAccrualSystem) error {
-	_, err500 := p.db.ExecContext(ctx, `UPDATE app_order SET status=$1 WHERE number=$2`, order.Status, order.Number)
-	if err500 != nil {
-		return err500
+	_, err := p.db.ExecContext(ctx, `UPDATE app_order SET status=$1 WHERE number=$2`, order.Status, order.Number)
+	if err != nil {
+		return err
 	}
 	return nil
 }

@@ -216,6 +216,7 @@ func (c *Controller) GetOrders(w http.ResponseWriter, r *http.Request) {
 
 	// Сериализуем JSON и отдаем пользователю
 	ordersJSON, err := json.Marshal(orders)
+	c.logger.Printf("HANDLER DEBUG ordersJSON: %s", ordersJSON)
 	if err != nil {
 		c.logger.Printf("can't json marshal. err: %s", err500)
 		w.WriteHeader(http.StatusInternalServerError)

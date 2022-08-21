@@ -60,8 +60,8 @@ func (a *accrualClientStruct) Init() {
 
 // getOrderByID получает данные из accrual системы
 //func (a *accrualClientStruct) getOrder(orderNum string) (string, string, float64, error) {
-func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderDB, error) {
-	order := models.OrderDB{}
+func (a *accrualClientStruct) getOrderByID(orderNum string) (models.OrderFromAccrualSystem, error) {
+	order := models.OrderFromAccrualSystem{}
 
 	endpoint := fmt.Sprintf("%s/api/orders/%s", a.accrualAddress, orderNum)
 	a.logger.Printf("HTTP Client: HTTP GET to endpoint: %s", endpoint)

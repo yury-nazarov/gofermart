@@ -1,12 +1,22 @@
 package models
 
-// OrderDB структура модели заказа в БД.
-//		   Используется для описания таблицы в БД
+// OrderFromAccrualSystem данные которые мы получаем из системы рассчета баллов
+// 						  используем для десериализации данных отвеа системы рассчета баллов
+// 						  OrderFromAccrualSystem и OrderDB отличаются json полем Number "order" vs "number"
+//						  это ломает ответы пользователю.
+type OrderFromAccrualSystem struct {
+	Number     string  `json:"order"`       // Номер заказа
+	Status     string  `json:"status"`      // Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
+	Accrual    float64 `json:"accrual"`     // Сколько начислено баллов этому заказу
+}
+
+// OrderDB структура данных для таблицы: app_order
+//			Используем для передачи в методы
+//			Сериализации ответа ручки: handler.GetOrders
 type OrderDB struct {
 	ID         int     `json:"-"`
 	UserID     int     `json:"-"`
-	//Number     string  `json:"number"`      // Номер заказа
-	Number     string  `json:"order"`       // Номер заказа
+	Number     string  `json:"number"`      // Номер заказа
 	Status     string  `json:"status"`      // Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
 	Accrual    float64 `json:"accrual"`     // Сколько начислено баллов этому заказу
 	UploadedAt string  `json:"uploaded_at"` // Дата загрузки в формате RFC3339
@@ -20,7 +30,7 @@ type OrderDB struct {
 //}
 
 
-// WithdrawDB структура для анмаршала JSON из HTTP Request
+// WithdrawDB структура данных для таблицы: withdraw_list для анмаршала JSON из HTTP Request
 type WithdrawDB struct {
 	Order       string  `json:"order"`
 	Sum         float64 `json:"sum"`

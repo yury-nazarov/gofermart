@@ -2,8 +2,6 @@ package processing
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -35,12 +33,12 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	}
 
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID
-	order, err := o.db.GetOrderByNumber(ctx, orderNum)
+	orderDB, err := o.db.GetOrderByNumber(ctx, orderNum)
 
 	// Если такого заказа нет - его можно создать
 	// ok202 - заказ принят в обработку
-	//if err != nil {
-	if errors.Is(err, sql.ErrNoRows) {
+	if err != nil {
+	//if errors.Is(err, sql.ErrNoRows) {
 		// TODO: Вынести выше по стеку в хендлер создание этой структурки
 		var newOrder models.OrderDB
 		newOrder.Number = orderNum
@@ -57,17 +55,17 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	}
 
 	// err409 - пользователь уже добавил этот заказ
-	if order.Number == orderNum && order.UserID == userID {
+	if orderDB.Number == orderNum && orderDB.UserID == userID {
 		return true, false, nil
 	}
 
 	// err409 - Заказ создан другим пользователем
-	if order.Number == orderNum && order.UserID != userID {
+	if orderDB.Number == orderNum && orderDB.UserID != userID {
 		// 409
 		return false, false, tools.NewError409("order exist for other user")
 	}
 
-	return false, false, tools.NewError500("create order somfing wrong")
+	return false, false, tools.NewError500("create order something wrong")
 }
 
 // CorrectOrderNumber - проверяет корректность номера заказа

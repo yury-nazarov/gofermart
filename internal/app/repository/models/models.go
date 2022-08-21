@@ -45,7 +45,8 @@ type WithdrawDB struct {
 // 			Используем для передачи в методы
 type UserDB struct {
 	ID             int     `json:"-"`
-	Login          string  `json:"-"`
+	Login          string  `json:"login,omitempty"`
+	Password       string  `json:"password,omitempty"`
 	AccrualCurrent float64 `json:"accrual_current"`
 	AccrualTotal   float64 `json:"accrual_total"`
 }

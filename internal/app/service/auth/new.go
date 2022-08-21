@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"fmt"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"log"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
@@ -27,8 +28,9 @@ func NewAuth(db pg.DBInterface, loginSession cache.UserSessionInterface, logger 
 }
 
 // SignUp регистрация пользователя
-func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (token string, err error) {
-	ok, err := a.db.UserExist(ctx, login)
+//func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (token string, err error) {
+func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (token string, err error) {
+	ok, err := a.db.UserExist(ctx, user.Login)
 	// Error500
 	if err != nil {
 		errString := fmt.Sprintf("UserExist sql querry error: %s", err)
@@ -42,11 +44,12 @@ func (a authLocalStruct) SignUp(ctx context.Context, login string, password stri
 		return "", tools.NewError400(errString)
 	}
 
-	// Считаем хеш пароля
-	hashPwd := hashPassword(password)
+	// Считаем хеш пароля и перезаписываем переменную
+	user.Password = hashPassword(user.Password)
 
 	// Записываем логин и хеш пароля в БД
-	userID, err := a.db.NewUser(ctx, login, hashPwd)
+	//userID, err := a.db.NewUser(ctx, login, hashPwd)
+	userID, err := a.db.NewUser(ctx, user)
 	if err != nil {
 		errString := fmt.Sprintf("can't create new user. err: %s", err)
 		a.logger.Print(errString)

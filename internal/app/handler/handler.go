@@ -47,7 +47,8 @@ func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order
 //			500 — внутренняя ошибка сервера.
 func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
-	user := auth.User{}
+	//user := auth.User{}
+	user := models.UserDB{}
 	err := JSONError400(r, &user, c.logger)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -57,7 +58,8 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	// Регистрируем пользователя
 	var err400 *tools.Error400
 	var err500 *tools.Error500
-	token, err := c.user.SignUp(r.Context(), user.Login, user.Password)
+	//token, err := c.user.SignUp(r.Context(), user.Login, user.Password)
+	token, err := c.user.SignUp(r.Context(), user)
 	if errors.As(err, &err400) {
 		c.logger.Printf("can't sing up userLogin: %s, err: %s", user.Login, err)
 		w.WriteHeader(http.StatusConflict)

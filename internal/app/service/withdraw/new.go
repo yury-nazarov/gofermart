@@ -38,7 +38,6 @@ func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance
 	return balance, nil
 }
 
-//func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNum string, sum float64) error {
 func (b *balanceStruct) WithdrawBalance(ctx context.Context, withdrawal models.WithdrawDB) error {
 	// Проверить номер заказа Луном
 	err := processing.CorrectOrderNumber(withdrawal.Order)

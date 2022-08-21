@@ -14,7 +14,6 @@ type BalanceInterface interface {
 	// CurrentBalance возвращает текущий баланс
 	CurrentBalance(ctx context.Context, userID int) (Balance, error)
 	// WithdrawBalance выводит средства со счета польователя
-	//WithdrawBalance(ctx context.Context, userID int, order string, sum float64) (err error)
 	WithdrawBalance(ctx context.Context, withdrawal models.WithdrawDB) error
 	// Withdrawals - возвращает список списаний для пользователя
 	Withdrawals(ctc context.Context, userID int) (WithdrawList []models.WithdrawDB, err error)

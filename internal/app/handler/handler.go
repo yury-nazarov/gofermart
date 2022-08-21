@@ -322,7 +322,6 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	var err422 *tools.Error422
 	var err500 *tools.Error500
 
-	//err = c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
 	err = c.balance.WithdrawBalance(r.Context(), withdrawal)
 	if errors.As(err, &err402) {
 		c.logger.Printf("can't calculate withdraw balance: err %s", err)

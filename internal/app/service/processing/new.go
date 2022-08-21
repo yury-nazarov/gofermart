@@ -2,6 +2,8 @@ package processing
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -37,8 +39,8 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 
 	// Если такого заказа нет - его можно создать
 	// ok202 - заказ принят в обработку
-	if err != nil {
-	//if errors.Is(err, sql.ErrNoRows) {
+	//if err != nil {
+	if errors.As(err, &sql.ErrNoRows) {
 		// TODO: Вынести выше по стеку в хендлер создание этой структурки
 		var newOrder models.OrderDB
 		newOrder.Number = orderNum

@@ -34,10 +34,12 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID
 	order, err := o.db.GetOrderByNumber(ctx, orderNum)
+	o.logger.Printf("DEBUG: service.processing.Add[return from GetOrderByNumber] order.Number: %s, order.UserID: %d", order.Number, order.UserID)
 
 	// Если произошла ошибка, то такого заказа нет и его можно создать
 	// ok202 - заказ принят в обработку
 	if err != nil {
+	//if errors.Is(err, sql.ErrNoRows) {
 		//err = o.db.AddOrder(ctx, orderNum, userID)
 		err = o.db.AddOrder(ctx, order)
 		if err != nil {

@@ -14,8 +14,8 @@ type AccrualInterface interface {
 	//getOrder(orderNum string) (orderNumber string, orderStatus string, orderAccrual float64, err error)
 	getOrderByID(orderNum string) (db models.OrderFromAccrualSystem, err error)
 	getDataFromDB() []string
-	updateAccrual(orderNumber string, orderStatus string, orderAccrual float64) error
-	//updateAccrual(db models.OrderDB) error
+	//updateAccrual(orderNumber string, orderStatus string, orderAccrual float64) error
+	updateAccrual(db models.OrderFromAccrualSystem) error
 }
 
 

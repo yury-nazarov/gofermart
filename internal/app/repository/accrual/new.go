@@ -47,7 +47,8 @@ func (a *accrualClientStruct) Init() {
 			// Обновляем результат в БД
 			if len(order.Number) != 0 {
 				a.logger.Printf("success get data from accrual system: orderNum: %s, status: %s, accrual: %f\n",  order.Number, order.Status, order.Accrual)
-				err := a.updateAccrual( order.Number, order.Status, order.Accrual)
+				//err := a.updateAccrual( order.Number, order.Status, order.Accrual)
+				err := a.updateAccrual(order)
 				if err != nil {
 					a.logger.Printf("updateAccrual have error execute: %s", err)
 				}
@@ -110,53 +111,54 @@ func (a *accrualClientStruct) getDataFromDB() []string {
 //			   сколько баллов получено за конкретный заказ.
 //			3. Проверяем если статус заказа вернувшийся от системы рассчета боллов: INVALID, PROCESSING, REGISTERED
 //			   Если статус иной, то обновляем статус для заказа и идем дальше.
-func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accrual float64) error {
-	a.logger.Printf("begin processed order: %s", orderNum)
+//func (a *accrualClientStruct) updateAccrual(orderNum string, status string, accrual float64) error {
+func (a *accrualClientStruct) updateAccrual(order models.OrderFromAccrualSystem) error {
+	a.logger.Printf("begin processed order: %s", order.Number)
 	//// Получить данные о текущем заказе и пользователе из БД
-	order, err := a.db.GetOrderByNumber(a.ctx, orderNum)
+	orderDB, err := a.db.GetOrderByNumber(a.ctx, order.Number)
 	if err != nil {
 		errMsg := fmt.Errorf("can't get order by orderNumber: %s", err)
 		a.logger.Println(errMsg)
 		return errMsg
 	}
-	a.logger.Printf("success get order info from table 'app_order': num: '%s', status: '%s', accrual: '%f', userID: '%d'", order.Number, order.Status, order.Accrual, order.UserID)
+	a.logger.Printf("success get order info from table 'app_order': num: '%s', status: '%s', accrual: '%f', userID: '%d'", orderDB.Number, orderDB.Status, orderDB.Accrual, orderDB.UserID)
 
 	// Если статус PROCESSED - значит обработка завершена и получен результат с новым accrual
 	// 						   можно обновить все необходимые данные в БД
-	if status == "PROCESSED" {
+	if order.Status == "PROCESSED" {
 		// Посчитать новые значения для accrual.current_point, accrual.total_point
-		currentPoint, totalPoint, err := a.db.GetAccrual(a.ctx, order.UserID)
+		currentPoint, totalPoint, err := a.db.GetAccrual(a.ctx, orderDB.UserID)
 		if err != nil {
-			errMsg := fmt.Errorf("can't get accrual on userID: '%d', err: %s", order.UserID, err)
+			errMsg := fmt.Errorf("can't get accrual on userID: '%d', err: %s", orderDB.UserID, err)
 			a.logger.Println(errMsg)
 			return errMsg
 		}
 		// При успешном получениее данных из accrual начисляем баллы
-		currentPoint += accrual
-		totalPoint += accrual
+		currentPoint += order.Accrual
+		totalPoint += order.Accrual
 
 		// Обновляем данные в таблице accrual.current_point, accrual.total_point для userID
-		err = a.db.UpdateAccrual(a.ctx, currentPoint, totalPoint, order.UserID)
+		err = a.db.UpdateAccrual(a.ctx, currentPoint, totalPoint, orderDB.UserID)
 		if err != nil {
-			errMsg := fmt.Errorf("can't update accrual for userID: '%d', err: %s", order.UserID, err)
+			errMsg := fmt.Errorf("can't update accrual for userID: '%d', err: %s", orderDB.UserID, err)
 			a.logger.Println(errMsg)
 			return errMsg
 		}
-		a.logger.Printf("success update table 'accrual' for userID: '%d'", order.UserID)
+		a.logger.Printf("success update table 'accrual' for userID: '%d'", orderDB.UserID)
 
 		// Обновить данные об в таблице app_order.accrual для orderNumber
-		err = a.db.UpdateOrderAccrual(a.ctx, accrual, order.Number)
+		err = a.db.UpdateOrderAccrual(a.ctx, order.Accrual, order.Number)
 		if err != nil {
-			errMsg := fmt.Errorf("can't update 'app_order.accrual' for userID: '%d', err: %s", order.UserID, err)
+			errMsg := fmt.Errorf("can't update 'app_order.accrual' for userID: '%d', err: %s", orderDB.UserID, err)
 			a.logger.Println(errMsg)
 			return errMsg
 		}
 
 	}
 	// Обновляем статус если: INVALID, PROCESSING, REGISTERED
-	err = a.db.OrderStatusUpdate(a.ctx, orderNum, status)
+	err = a.db.OrderStatusUpdate(a.ctx, order.Number, order.Status)
 	if err != nil {
-		errMsg := fmt.Errorf("can't update 'app_order.status' %s for order: '%s', err: %s", status, orderNum, err)
+		errMsg := fmt.Errorf("can't update 'app_order.status' %s for order: '%s', err: %s", order.Status, order.Number, err)
 		a.logger.Println(errMsg)
 		return errMsg
 	}

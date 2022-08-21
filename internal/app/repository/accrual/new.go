@@ -32,12 +32,12 @@ func (a *accrualClientStruct) Init() {
 
 		orderList := a.getDataFromDB()
 		a.logger.Printf("HTTP Client: get Orders from DB: %s", orderList)
-		for _, order := range orderList {
+		for _, orderNum := range orderList {
 			a.logger.Printf("HTTP Client: try to connect accrual server: %s for get info about order: %s", a.accrualAddress, order)
 
 			// Выполняем запрос в систему рассчета баллов
 			//orderNum, status, accrual, err := a.getOrder(order)
-			order, err := a.getOrderByID(order)
+			order, err := a.getOrderByID(orderNum)
 			if err != nil {
 				a.logger.Printf("can't connect to accrual system. err: %s", err)
 				continue

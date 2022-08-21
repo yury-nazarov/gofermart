@@ -144,7 +144,6 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 
 	// Пробуем добавить заказ
 	c.logger.Printf("Handler. From userID: %d, get orderNum: %s", userID, orderNum)
-	//ok200, ok202, err := c.order.Add(r.Context(), orderNum, userID)
 	ok200, ok202, err := c.order.Add(r.Context(), newOrder)
 	// номер заказа уже был загружен этим пользователем;
 	if ok200 {
@@ -299,8 +298,8 @@ func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 //			}
 func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
-	withdraw := models.WithdrawDB{}
-	err := JSONError400(r, &withdraw, c.logger)
+	withdrawal := models.WithdrawDB{}
+	err := JSONError400(r, &withdrawal, c.logger)
 	if err != nil {
 		c.logger.Printf("can't json read. err: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -316,13 +315,15 @@ func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	withdrawal.UserID = userID
 
 	// Выводим средства со счета пользователя: app_user.current - sum
 	var err402 *tools.Error402
 	var err422 *tools.Error422
 	var err500 *tools.Error500
 
-	err = c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
+	//err = c.balance.WithdrawBalance(r.Context(), userID, withdraw.Order, withdraw.Sum)
+	err = c.balance.WithdrawBalance(r.Context(), withdrawal)
 	if errors.As(err, &err402) {
 		c.logger.Printf("can't calculate withdraw balance: err %s", err)
 		w.WriteHeader(http.StatusPaymentRequired)
@@ -376,7 +377,6 @@ func (c *Controller) Withdrawals(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-
 	if errors.As(err, &err500) {
 		c.logger.Printf("can't connection to cache of user session: err %s", err)
 		w.WriteHeader(http.StatusInternalServerError)

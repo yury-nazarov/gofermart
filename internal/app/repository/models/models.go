@@ -35,6 +35,7 @@ type OrderDB struct {
 // 			передачи в методы
 type WithdrawDB struct {
 	ID          int     `json:"-"`
+	UserID      int     `json:"-"`
 	Order       string  `json:"order"`
 	Sum         float64 `json:"sum"`
 	ProcessedAt string  `json:"processed_at,omitempty"`

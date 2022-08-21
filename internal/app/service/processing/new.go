@@ -22,7 +22,6 @@ func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
 }
 
 // Add - добавляет новый заказ
-//func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err error) {
 func (o orderStruct) Add(ctx context.Context, newOrder models.OrderDB) (ok200, ok202 bool, err error) {
 	// err422 - Проверяем корректен ли номер заказа
 	// если номер заказа некорректный - отвечаем со статусом 422
@@ -39,8 +38,8 @@ func (o orderStruct) Add(ctx context.Context, newOrder models.OrderDB) (ok200, o
 	// Если такого заказа нет - его можно создать
 	// ok202 - заказ принят в обработку
 	if err != nil {
-	// Не получилось, подумать. go vet:  second argument to errors.As should not be *error
-	//if errors.As(err, &sql.ErrNoRows) {
+		// Не получилось, подумать. go vet:  second argument to errors.As should not be *error
+		//if errors.As(err, &sql.ErrNoRows) {
 		err = o.db.AddOrder(ctx, newOrder)
 		if err != nil {
 			// err500

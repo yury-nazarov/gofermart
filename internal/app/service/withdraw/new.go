@@ -38,15 +38,16 @@ func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance
 	return balance, nil
 }
 
-func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNum string, sum float64) error {
+//func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNum string, sum float64) error {
+func (b *balanceStruct) WithdrawBalance(ctx context.Context, withdrawal models.WithdrawDB) error {
 	// Проверить номер заказа Луном
-	err := processing.CorrectOrderNumber(orderNum)
+	err := processing.CorrectOrderNumber(withdrawal.Order)
 	if err != nil {
-		errMgg := fmt.Sprintf("incorrect order number '%s'. err: %s", orderNum, err.Error())
+		errMgg := fmt.Sprintf("incorrect order number '%s'. err: %s", withdrawal.Order, err.Error())
 		return tools.NewError422(errMgg)
 	}
 
-	err = b.db.UpdateAccrualTransaction(ctx, orderNum, userID, sum)
+	err = b.db.UpdateAccrualTransaction(ctx, withdrawal.Order, withdrawal.UserID, withdrawal.Sum)
 	if err != nil {
 		// Транзитом прокидываем 402 и 500 на верх
 		return err

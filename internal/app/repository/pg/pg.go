@@ -234,7 +234,6 @@ func (p *pg) UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumbe
 }
 
 // UpdateAccrualTransaction - обновить значения таблиц: app_user, app_order
-//func (p *pg) UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64) error {
 func (p *pg) UpdateAccrualTransaction(ctx context.Context, withdrawal models.WithdrawDB) error {
 	// Открываем транзакцию
 	tx, err := p.db.Begin()

@@ -32,7 +32,6 @@ type DBInterface interface {
 	UpdateAccrual(ctx context.Context, user models.UserDB) error
 	// UpdateAccrualTransaction - списание баллов в рамках транзации и обновление / добавление во все нужные таблицы
 	UpdateAccrualTransaction(ctx context.Context, withdrawal models.WithdrawDB) error
-	//UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64) error
 	// UpdateOrderAccrual - обновляет значения для app_order.accrual
 	UpdateOrderAccrual(ctx context.Context, accrual float64, orderNumber string) error
 	// GetOrderByUserID проверяем налицие заказа для конкретного пользователя

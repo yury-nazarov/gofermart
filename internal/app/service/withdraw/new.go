@@ -46,7 +46,6 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, withdrawal models.W
 		return tools.NewError422(errMgg)
 	}
 
-	//err = b.db.UpdateAccrualTransaction(ctx, withdrawal.Order, withdrawal.UserID, withdrawal.Sum)
 	err = b.db.UpdateAccrualTransaction(ctx, withdrawal)
 	if err != nil {
 		// Транзитом прокидываем 402 и 500 на верх

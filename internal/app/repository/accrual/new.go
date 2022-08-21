@@ -131,7 +131,7 @@ func (a *accrualClientStruct) updateAccrual(order models.OrderFromAccrualSystem)
 		// При успешном получениее данных из accrual начисляем баллы
 		user.AccrualCurrent += order.Accrual
 		user.AccrualTotal += order.Accrual
-		user.ID = orderDB.UserID
+		a.logger.Printf("DEBUD USER ID: %s", user.ID)
 
 		// Обновляем данные в таблице accrual.current_point, accrual.total_point для userID
 		err = a.db.UpdateAccrual(a.ctx, user.AccrualCurrent, user.AccrualTotal, orderDB.UserID)

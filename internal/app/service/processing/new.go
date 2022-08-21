@@ -2,8 +2,6 @@ package processing
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -24,28 +22,25 @@ func NewOrder(db pg.DBInterface, logger *log.Logger) orderStruct {
 }
 
 // Add - добавляет новый заказ
-func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err error) {
+//func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok200, ok202 bool, err error) {
+func (o orderStruct) Add(ctx context.Context, newOrder models.OrderDB) (ok200, ok202 bool, err error) {
 	// err422 - Проверяем корректен ли номер заказа
 	// если номер заказа некорректный - отвечаем со статусом 422
-	err = CorrectOrderNumber(orderNum)
+	err = CorrectOrderNumber(newOrder.Number)
 	if err != nil {
 		// 422
-		errMsg := fmt.Sprintf("orderNum: '%s', correctOrderNumber is wrong: %s", orderNum, err)
+		errMsg := fmt.Sprintf("orderNum: '%s', correctOrderNumber is wrong: %s", newOrder.Number, err)
 		return false, false, tools.NewError422(errMsg)
 	}
 
 	// Проверяем наличие номера заказа в БД, а так же соответствие userID
-	orderDB, err := o.db.GetOrderByNumber(ctx, orderNum)
+	orderDB, err := o.db.GetOrderByNumber(ctx, newOrder.Number)
 
 	// Если такого заказа нет - его можно создать
 	// ok202 - заказ принят в обработку
-	//if err != nil {
-	if errors.As(err, &sql.ErrNoRows) {
-		// TODO: Вынести выше по стеку в хендлер создание этой структурки
-		var newOrder models.OrderDB
-		newOrder.Number = orderNum
-		newOrder.UserID = userID
-
+	if err != nil {
+	// Не получилось, подумать. go vet:  second argument to errors.As should not be *error
+	//if errors.As(err, &sql.ErrNoRows) {
 		err = o.db.AddOrder(ctx, newOrder)
 		if err != nil {
 			// err500
@@ -57,12 +52,12 @@ func (o orderStruct) Add(ctx context.Context, orderNum string, userID int) (ok20
 	}
 
 	// err409 - пользователь уже добавил этот заказ
-	if orderDB.Number == orderNum && orderDB.UserID == userID {
+	if orderDB.Number == newOrder.Number && orderDB.UserID == newOrder.UserID {
 		return true, false, nil
 	}
 
 	// err409 - Заказ создан другим пользователем
-	if orderDB.Number == orderNum && orderDB.UserID != userID {
+	if orderDB.Number == newOrder.Number && orderDB.UserID != newOrder.UserID {
 		// 409
 		return false, false, tools.NewError409("order exist for other user")
 	}

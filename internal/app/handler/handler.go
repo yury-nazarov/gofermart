@@ -135,13 +135,17 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Делаем структурку для дальнейше передачи аргументов заказа в бизнес логику
+	var newOrder = models.OrderDB{Number: orderNum, UserID: userID }
+
 	var err409 *tools.Error409
 	var err422 *tools.Error422
 	var err500 *tools.Error500
 
 	// Пробуем добавить заказ
 	c.logger.Printf("Handler. From userID: %d, get orderNum: %s", userID, orderNum)
-	ok200, ok202, err := c.order.Add(r.Context(), orderNum, userID)
+	//ok200, ok202, err := c.order.Add(r.Context(), orderNum, userID)
+	ok200, ok202, err := c.order.Add(r.Context(), newOrder)
 	// номер заказа уже был загружен этим пользователем;
 	if ok200 {
 		c.logger.Printf("Order %s for userID %d is exist", orderNum, userID)

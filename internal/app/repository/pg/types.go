@@ -35,8 +35,6 @@ type DBInterface interface {
 	UpdateAccrualTransaction(ctx context.Context, withdrawal models.WithdrawDB) error
 	// UpdateOrderAccrual - обновляет значения для app_order.accrual
 	UpdateOrderAccrual(ctx context.Context, order models.OrderFromAccrualSystem) error
-	// GetOrderByUserID проверяем налицие заказа для конкретного пользователя
-	GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error)
 	// GetWithdrawList вернет список всех списаний для пользователя
 	GetWithdrawList(ctx context.Context, userID int) ([]models.WithdrawDB, error)
 }

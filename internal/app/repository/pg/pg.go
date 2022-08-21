@@ -292,19 +292,6 @@ func (p *pg) UpdateAccrualTransaction(ctx context.Context, withdrawal models.Wit
 	return tx.Commit()
 }
 
-// GetOrderByUserID проверяем налицие заказа для конкретного пользователя
-func (p *pg) GetOrderByUserID(ctx context.Context, orderNum string, userID int) (string, error) {
-	var status string
-
-	err := p.db.QueryRowContext(ctx, `SELECT status FROM app_order 
-                                            WHERE number=$1 
-                                            AND user_id=$2 LIMIT 1`, orderNum, userID).Scan(&status)
-	if err != nil {
-		return "", err
-	}
-	return status, nil
-}
-
 // GetWithdrawList вернет список всех списаний для пользователя
 func (p *pg) GetWithdrawList(ctx context.Context, userID int) (withdrawList []models.WithdrawDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT order_num, sum_points, processed_at

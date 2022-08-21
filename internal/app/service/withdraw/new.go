@@ -26,13 +26,14 @@ func NewBalance(db pg.DBInterface, logger *log.Logger) *balanceStruct {
 func (b *balanceStruct) CurrentBalance(ctx context.Context, userID int) (Balance, error) {
 	var balance Balance
 	// Делаем запрос в app_user, получаем: app_user.accrual_current app_user.accrual_total
-	current, total, err := b.db.GetAccrual(ctx, userID)
+	//current, total, err := b.db.GetAccrual(ctx, userID)
+	user, err := b.db.GetAccrual(ctx, userID)
 	if err != nil {
 		return balance, err
 	}
 	// Считаем сетрики которые хочет увидеть пользователь
-	balance.Current = current
-	balance.Withdrawn = total - current
+	balance.Current = user.AccrualCurrent
+	balance.Withdrawn = user.AccrualTotal - user.AccrualCurrent
 
 	return balance, nil
 }

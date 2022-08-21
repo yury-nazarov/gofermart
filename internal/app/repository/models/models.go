@@ -33,3 +33,10 @@ type WithdrawDB struct {
 	Sum         float64 `json:"sum"`
 	ProcessedAt string  `json:"processed_at,omitempty"`
 }
+
+type UserDB struct {
+	ID             int     `json:"-"`
+	Login          string  `json:"-"`
+	AccrualCurrent float64 `json:"accrual_current"`
+	AccrualTotal   float64 `json:"accrual_total"`
+}

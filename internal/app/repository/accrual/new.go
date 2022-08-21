@@ -121,18 +121,20 @@ func (a *accrualClientStruct) updateAccrual(order models.OrderFromAccrualSystem)
 	// 						   можно обновить все необходимые данные в БД
 	if order.Status == "PROCESSED" {
 		// Посчитать новые значения для accrual.current_point, accrual.total_point
-		currentPoint, totalPoint, err := a.db.GetAccrual(a.ctx, orderDB.UserID)
+		//currentPoint, totalPoint, err := a.db.GetAccrual(a.ctx, orderDB.UserID)
+		user, err := a.db.GetAccrual(a.ctx, orderDB.UserID)
 		if err != nil {
 			errMsg := fmt.Errorf("can't get accrual on userID: '%d', err: %s", orderDB.UserID, err)
 			a.logger.Println(errMsg)
 			return errMsg
 		}
 		// При успешном получениее данных из accrual начисляем баллы
-		currentPoint += order.Accrual
-		totalPoint += order.Accrual
+		user.AccrualCurrent += order.Accrual
+		user.AccrualTotal += order.Accrual
+		user.ID = orderDB.UserID
 
 		// Обновляем данные в таблице accrual.current_point, accrual.total_point для userID
-		err = a.db.UpdateAccrual(a.ctx, currentPoint, totalPoint, orderDB.UserID)
+		err = a.db.UpdateAccrual(a.ctx, user.AccrualCurrent, user.AccrualTotal, orderDB.UserID)
 		if err != nil {
 			errMsg := fmt.Errorf("can't update accrual for userID: '%d', err: %s", orderDB.UserID, err)
 			a.logger.Println(errMsg)

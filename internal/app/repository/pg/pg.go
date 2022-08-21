@@ -198,14 +198,15 @@ func (p *pg) OrderStatusUpdate(ctx context.Context, orderNum string, status stri
 }
 
 //GetAccrual получить текущие значения таблицы: app_user.accrual_current, app_user.accrual_total
-func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, totalPoint float64, err error) {
+//func (p *pg) GetAccrual(ctx context.Context, userID int) (currentPoint float64, totalPoint float64, err error) {
+func (p *pg) GetAccrual(ctx context.Context, userID int) (user models.UserDB, err error) {
 
 	err = p.db.QueryRowContext(ctx, `SELECT accrual_current, accrual_total FROM app_user
-                                           WHERE id=$1 LIMIT 1`, userID).Scan(&currentPoint, &totalPoint)
+                                           WHERE id=$1 LIMIT 1`, userID).Scan(&user.AccrualCurrent, &user.AccrualTotal)
 	if err != nil {
-		return 0, 0, err
+		return user, err
 	}
-	return currentPoint, totalPoint, nil
+	return user, nil
 }
 
 // UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"github.com/yury-nazarov/gofermart/pkg/tools"
 
@@ -78,7 +79,7 @@ func CorrectOrderNumber(orderNum string) error {
 }
 
 // List - список всех заказов пользователя
-func (o orderStruct) List(ctx context.Context, userID int) (orders []pg.OrderDB, err error) {
+func (o orderStruct) List(ctx context.Context, userID int) (orders []models.OrderDB, err error) {
 	// Делаем запрос в БД
 	orders, err = o.db.ListOrders(ctx, userID)
 	// 	err500 - ошибка выполнения запроса
@@ -96,7 +97,7 @@ func (o orderStruct) List(ctx context.Context, userID int) (orders []pg.OrderDB,
 }
 
 // orderConvertData - конвертирует определенные поля заказа в нужный формат
-func (o orderStruct) orderConvertData(orderList []pg.OrderDB) (clearOrderList []pg.OrderDB) {
+func (o orderStruct) orderConvertData(orderList []models.OrderDB) (clearOrderList []models.OrderDB) {
 
 	log.Println("Order list", orderList)
 	for _, order := range orderList {

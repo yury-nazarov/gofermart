@@ -2,7 +2,8 @@ package withdraw
 
 import (
 	"context"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
+
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 )
 
 /*
@@ -15,7 +16,7 @@ type BalanceInterface interface {
 	// WithdrawBalance выводит средства со счета польователя
 	WithdrawBalance(ctx context.Context, userID int, order string, sum float64) (err error)
 	// Withdrawals - возвращает список списаний для пользователя
-	Withdrawals(ctc context.Context, userID int) (WithdrawList []pg.WithdrawDB, err error)
+	Withdrawals(ctc context.Context, userID int) (WithdrawList []models.WithdrawDB, err error)
 }
 
 // Balance Для маршала json перед отправкой пользователю

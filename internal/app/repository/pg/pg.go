@@ -10,8 +10,10 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"log"
 
-	"github.com/pressly/goose"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"github.com/yury-nazarov/gofermart/pkg/tools"
+
+	"github.com/pressly/goose"
 )
 
 // pg объект через который происходит подключение к БД
@@ -95,7 +97,7 @@ func (p *pg) UserIsValid(ctx context.Context, login string, hashPwd string) (use
 }
 
 // GetOrderByNumber Вернет заказ по его номеру
-func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o OrderDB, err error) {
+func (p *pg) GetOrderByNumber(ctx context.Context, orderNum string) (o models.OrderDB, err error) {
 	// Если записи нет то вернется {0 0 0  0 }
 	row := p.db.QueryRowContext(ctx, `SELECT id, user_id, number, status, accrual, uploaded_at 
                                             FROM app_order 
@@ -128,7 +130,7 @@ func (p *pg) AddAccrual(ctx context.Context, userID int) error {
 }
 
 // ListOrders Получить спосок заказов пользователя
-func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error) {
+func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []models.OrderDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT number, status, accrual, uploaded_at 
                                                FROM app_order WHERE user_id=$1`, userID)
 	if err != nil {
@@ -146,7 +148,7 @@ func (p *pg) ListOrders(ctx context.Context, userID int) (orderList []OrderDB, e
 		}
 	}()
 
-	o := OrderDB{}
+	o := models.OrderDB{}
 	for rows.Next() {
 		log.Println("Upload", &o.UploadedAt)
 		if err = rows.Scan(&o.Number, &o.Status, &o.Accrual, &o.UploadedAt); err != nil {
@@ -311,7 +313,7 @@ func (p *pg) AddToWithdrawList(ctx context.Context, orderNum string, sumPoints f
 }
 
 // GetWithdrawList вернет список всех списаний для пользователя
-func (p *pg) GetWithdrawList(ctx context.Context, userID int) (withdrawList []WithdrawDB, err error) {
+func (p *pg) GetWithdrawList(ctx context.Context, userID int) (withdrawList []models.WithdrawDB, err error) {
 	rows, err := p.db.QueryContext(ctx, `SELECT order_num, sum_points, processed_at
                                                FROM withdraw_list
                                                WHERE user_id=$1
@@ -329,7 +331,7 @@ func (p *pg) GetWithdrawList(ctx context.Context, userID int) (withdrawList []Wi
 			log.Printf("defer rows.Err() error: %s", err)
 		}
 	}()
-	withdraw := WithdrawDB{}
+	withdraw := models.WithdrawDB{}
 	for rows.Next() {
 		err = rows.Scan(&withdraw.Order, &withdraw.Sum, &withdraw.ProcessedAt)
 		if err != nil {

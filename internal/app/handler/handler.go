@@ -10,7 +10,7 @@ import (
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/accrual"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"github.com/yury-nazarov/gofermart/internal/app/service/auth"
 	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"github.com/yury-nazarov/gofermart/internal/app/service/withdraw"
@@ -294,7 +294,7 @@ func (c *Controller) GetBalance(w http.ResponseWriter, r *http.Request) {
 //			}
 func (c *Controller) Withdraw(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
-	withdraw := pg.WithdrawDB{}
+	withdraw := models.WithdrawDB{}
 	err := JSONError400(r, &withdraw, c.logger)
 	if err != nil {
 		c.logger.Printf("can't json read. err: %s", err)

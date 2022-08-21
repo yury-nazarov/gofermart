@@ -1,24 +1,11 @@
 package pg
 
-import "context"
+import (
+	"context"
 
-// OrderDB структура модели заказа в БД.
-//		   Используется для описания таблицы в БД
-type OrderDB struct {
-	ID         int     `json:"-"`
-	UserID     int     `json:"-"`
-	Number     string  `json:"number"`      // Номер заказа
-	Status     string  `json:"status"`      // Статус обработки: NEW, PROCESSING, INVALID, PROCESSED
-	Accrual    float64 `json:"accrual"`     // Сколько начислено баллов этому заказу
-	UploadedAt string  `json:"uploaded_at"` // Дата загрузки в формате RFC3339
-}
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
+)
 
-// WithdrawDB структура для анмаршала JSON из HTTP Request
-type WithdrawDB struct {
-	Order       string  `json:"order"`
-	Sum         float64 `json:"sum"`
-	ProcessedAt string  `json:"processed_at,omitempty"`
-}
 
 // DBInterface методы работы с релиационными БД
 type DBInterface interface {
@@ -29,13 +16,13 @@ type DBInterface interface {
 	// UserIsValid Проверяет на сколько валидны креды пользователя и вообще существует ли он
 	UserIsValid(ctx context.Context, login string, hashPwd string) (userID int, err error)
 	// GetOrderByNumber Вернет заказ по его номеру
-	GetOrderByNumber(ctx context.Context, orderNum string) (order OrderDB, err error)
+	GetOrderByNumber(ctx context.Context, orderNum string) (order models.OrderDB, err error)
 	// AddOrder добавит новый номер заказа
 	AddOrder(ctx context.Context, orderNumber string, userID int) error
 	// AddAccrual добавляет запись в таблицу accrual
 	AddAccrual(ctx context.Context, userID int) error
 	// ListOrders Получить спосок заказов пользователя
-	ListOrders(ctx context.Context, userID int) (orderList []OrderDB, err error)
+	ListOrders(ctx context.Context, userID int) (orderList []models.OrderDB, err error)
 	// GetOrders получает все заказы со статусом NEW, PROCESSING
 	GetOrders() ([]string, error)
 	// OrderStatusUpdate обновить статус заказа
@@ -53,5 +40,5 @@ type DBInterface interface {
 	// AddToWithdrawList - добавляет новую запись в журнал
 	AddToWithdrawList(ctx context.Context, orderNum string, sum float64, userID int) error
 	// GetWithdrawList вернет список всех списаний для пользователя
-	GetWithdrawList(ctx context.Context, userID int) ([]WithdrawDB, error)
+	GetWithdrawList(ctx context.Context, userID int) ([]models.WithdrawDB, error)
 }

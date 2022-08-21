@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"github.com/yury-nazarov/gofermart/internal/app/service/processing"
 	"github.com/yury-nazarov/gofermart/pkg/tools"
@@ -53,7 +54,7 @@ func (b *balanceStruct) WithdrawBalance(ctx context.Context, userID int, orderNu
 	return nil
 }
 
-func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawList []pg.WithdrawDB, err error) {
+func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawList []models.WithdrawDB, err error) {
 	// Получить данные из таблицы withdraw_list
 	RawWithdrawList, err := b.db.GetWithdrawList(ctx, userID)
 	if err != nil {
@@ -68,7 +69,7 @@ func (b *balanceStruct) Withdrawals(ctx context.Context, userID int) (WithdrawLi
 		if err != nil {
 			b.logger.Printf("can't convert datatime. err: %s", err)
 		}
-		withdraw := pg.WithdrawDB{}
+		withdraw := models.WithdrawDB{}
 		withdraw.Order = v.Order
 		withdraw.Sum = v.Sum
 		withdraw.ProcessedAt = dataRFC3339

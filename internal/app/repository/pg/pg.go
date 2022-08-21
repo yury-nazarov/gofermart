@@ -209,10 +209,11 @@ func (p *pg) GetAccrual(ctx context.Context, userID int) (user models.UserDB, er
 }
 
 // UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
-func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error {
+//func (p *pg) UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error {
+func (p *pg) UpdateAccrual(ctx context.Context, user models.UserDB) error {
 	_, err := p.db.ExecContext(ctx, `UPDATE app_user
                                            SET accrual_current=$1, accrual_total=$2
-                                           WHERE id=$3`, currentPoint, totalPoint, userID)
+                                           WHERE id=$3`, user.AccrualCurrent, user.AccrualTotal, user.ID)
 	if err != nil {
 		return err
 	}

@@ -29,7 +29,8 @@ type DBInterface interface {
 	//GetAccrual получить текущие значения таблицы: app_user.accrual_current, app_user.accrual_total
 	GetAccrual(ctx context.Context, userID int) (models.UserDB, error)
 	// UpdateAccrual - обновить значения таблицы: accrual.current_point, accrual.total_point
-	UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error
+	UpdateAccrual(ctx context.Context, user models.UserDB) error
+	//UpdateAccrual(ctx context.Context, currentPoint float64, totalPoint float64, userID int) error
 	// UpdateAccrualTransaction - списание баллов в рамках транзации и обновление / добавление во все нужные таблицы
 	UpdateAccrualTransaction(ctx context.Context, orderNum string, userID int, sum float64) error
 	// UpdateOrderAccrual - обновляет значения для app_order.accrual

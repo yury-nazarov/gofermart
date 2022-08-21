@@ -47,7 +47,6 @@ func New(user auth.UserInterface, loginSession cache.UserSessionInterface, order
 //			500 — внутренняя ошибка сервера.
 func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
-	//user := auth.User{}
 	user := models.UserDB{}
 	err := JSONError400(r, &user, c.logger)
 	if err != nil {
@@ -83,7 +82,6 @@ func (c *Controller) Register(w http.ResponseWriter, r *http.Request) {
 //		500 — внутренняя ошибка сервера.
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	// Читаем присланые данные
-	//user := auth.User{}
 	user := models.UserDB{}
 	err := JSONError400(r, &user, c.logger)
 	if err != nil {

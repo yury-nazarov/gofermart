@@ -5,10 +5,10 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"fmt"
-	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"log"
 
 	"github.com/yury-nazarov/gofermart/internal/app/repository/cache"
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"github.com/yury-nazarov/gofermart/internal/app/repository/pg"
 	"github.com/yury-nazarov/gofermart/pkg/tools"
 )
@@ -28,7 +28,6 @@ func NewAuth(db pg.DBInterface, loginSession cache.UserSessionInterface, logger 
 }
 
 // SignUp регистрация пользователя
-//func (a authLocalStruct) SignUp(ctx context.Context, login string, password string) (token string, err error) {
 func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (models.UserDB, error) {
 	ok, err := a.db.UserExist(ctx, user.Login)
 	// Error500
@@ -57,10 +56,8 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (models
 	}
 
 	// Генерим Токен, добавляем токен и userID в сессию
-	//token = newToken()
 	user.Token = newToken()
 	err = a.loginSession.Add(user)
-	//err = a.loginSession.Add(token, user.ID)
 	if err != nil {
 		errString := fmt.Sprintf("can't init user session. err: %s", err)
 		a.logger.Print(errString)
@@ -72,7 +69,6 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (models
 }
 
 // SignIn вход пользователя
-//func (a authLocalStruct) SignIn(ctx context.Context, login string, password string) (token string, err error) {
 func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (models.UserDB,error) {
 	// Считаем хеш пароля
 	user.Password = hashPassword(user.Password)
@@ -96,20 +92,22 @@ func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (models
 	return user, nil
 }
 
-func (a authLocalStruct) IsUserSignIn(token string) (userID int, err500 error) {
-	userID, err := a.loginSession.GetUserIDByToken(token)
+//func (a authLocalStruct) IsSignIn(token string) (userID int, err error) {
+func (a authLocalStruct) IsSignIn(user models.UserDB) (models.UserDB, error) {
+	userID, err := a.loginSession.GetUserIDByToken(user.Token)
 	// Ошибка работы с кешем
 	if err != nil {
-		a.logger.Printf("session storage have error: %s", err500)
-		return 0, err500
+		a.logger.Printf("session storage have error: %s", err)
+		return user, err
 	}
 	// Токен не найден
 	if userID == 0 {
 		a.logger.Printf("Token not exist")
-		return 0, nil
+		return user, nil
 	}
 	// Токен найден
-	return userID, nil
+	user.ID = userID
+	return user, nil
 }
 
 // newToken создает токен

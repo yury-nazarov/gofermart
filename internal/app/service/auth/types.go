@@ -11,6 +11,6 @@ type UserInterface interface {
 	SignUp(ctx context.Context, user models.UserDB) (models.UserDB, error)
 	// SignIn Авторизует пользователя
 	SignIn(ctx context.Context, user models.UserDB) (models.UserDB, error)
-	// IsUserSignIn Проверяет авторизован ли пользователь
-	IsUserSignIn(token string) (userID int, err500 error)
+	// IsSignIn Проверяет авторизован ли пользователь
+	IsSignIn(user models.UserDB) (models.UserDB, error)
 }

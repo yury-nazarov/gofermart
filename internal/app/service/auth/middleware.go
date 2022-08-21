@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/yury-nazarov/gofermart/internal/app/repository/models"
 	"log"
 	"net/http"
 )
@@ -17,19 +18,22 @@ import (
 */
 
 // HTTPTokenExist Проверяет наличие токена
-func HTTPTokenExist(user UserInterface, logger *log.Logger) func(next http.Handler) http.Handler {
+func HTTPTokenExist(auth UserInterface, logger *log.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			// Получаем токен из хедера и проверяем его в сессии
 			token := r.Header.Get("Authorization")
-			userID, err500 := user.IsUserSignIn(token)
+			var user = models.UserDB{
+				Token: token,
+			}
+			user, err := auth.IsSignIn(user)
 			// Что то пошло не так с кешем
-			if err500 != nil {
+			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 
 			// Токен есть в кеше
-			if userID != 0 {
+			if user.ID != 0 {
 				next.ServeHTTP(w, r)
 			}
 

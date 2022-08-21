@@ -69,7 +69,7 @@ func (a authLocalStruct) SignUp(ctx context.Context, user models.UserDB) (models
 }
 
 // SignIn вход пользователя
-func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (models.UserDB,error) {
+func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (models.UserDB, error) {
 	// Считаем хеш пароля
 	user.Password = hashPassword(user.Password)
 
@@ -92,7 +92,6 @@ func (a authLocalStruct) SignIn(ctx context.Context, user models.UserDB) (models
 	return user, nil
 }
 
-//func (a authLocalStruct) IsSignIn(token string) (userID int, err error) {
 func (a authLocalStruct) IsSignIn(user models.UserDB) (models.UserDB, error) {
 	userID, err := a.loginSession.GetUserIDByToken(user.Token)
 	// Ошибка работы с кешем

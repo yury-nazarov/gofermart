@@ -145,8 +145,7 @@ func (c *Controller) AddOrders(w http.ResponseWriter, r *http.Request) {
 	var err422 *tools.Error422
 	var err500 *tools.Error500
 
-	// Пробуем добавить заказ
-	c.logger.Printf("Handler. From userID: %d, get orderNum: %s", userID, orderNum)
+	// Добавляем заказ
 	ok200, ok202, err := c.order.Add(r.Context(), newOrder)
 	// номер заказа уже был загружен этим пользователем;
 	if ok200 {
